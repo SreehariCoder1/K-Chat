@@ -1,0 +1,192 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 1rem;
+}
+
+.card {
+  background: #ffffff;
+  padding: 1em 0.5em;
+  border-radius: 1em;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+  min-width: 50vw;
+  text-align: center;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.08),
+    0 3px 10px rgba(0, 0, 0, 0.03);
+}
+
+.logoContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.palmTree {
+  font-size: 2.2rem;
+  animation: gentleSway 3s ease-in-out infinite alternate;
+  display: inline-block;
+}
+
+@keyframes gentleSway {
+  0% {
+    transform: rotate(-10deg);
+  }
+  100% {
+    transform: rotate(10deg);
+  }
+}
+
+.logoText {
+  background: linear-gradient(90deg, #4caf50, #cddc39);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: #6c757d;
+  font-size: 0.95rem;
+  margin-bottom: 2em;
+  font-weight: 400;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.inputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.85em 1em;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5em;
+  background-color: #f8fafc;
+  font-size: 1rem;
+  color: #334155;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #4caf50;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.15);
+}
+
+.input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.passwordInput {
+  padding-right: 3em;
+}
+
+.eyeIconToggle {
+  position: absolute;
+  right: 1.2em;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.eyeIconToggle:hover {
+  color: #4caf50;
+}
+
+.loginBtn {
+  background-color: #2e7d32;
+  color: white;
+  border-radius: 0.5em;
+  padding: 0.85em;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 0.5em;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.loginBtn:hover {
+  background-color: #1b5e20;
+  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
+  transform: translateY(-1px);
+}
+
+.loginBtn:active {
+  transform: translateY(0);
+}
+
+.forgotPassword {
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  margin-top: 0.7em;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+
+.forgotPassword:hover {
+  color: #1b5e20;
+  text-decoration: underline;
+}
+
+.registerText {
+  margin-top: 1em;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.registerLink {
+  color: #2e7d32;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0;
+  margin-left: 0.3em;
+  transition: color 0.2s ease;
+}
+
+.registerLink:hover {
+  color: #1b5e20;
+  text-decoration: underline;
+}
+
+/* media queries */
+
+@media (min-width: 1740px) {
+  .eyeIcon {
+    width: 2em;
+    height: 2em;
+  }
+}

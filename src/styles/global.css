@@ -1,0 +1,56 @@
+/* =========================
+   CSS RESET
+========================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+/* =========================
+   LINKS
+========================= */
+a {
+  text-decoration: none;
+}
+
+/* html */
+@media (min-width: 1440px) and (max-width: 1740px) {
+ html {
+  font-size: 20px;
+ }
+}
+
+@media (min-width: 1740px) and (max-width: 2040px) {
+ html {
+  font-size: 24px;
+ }
+}
+
+@media (min-width: 2040px) and (max-width: 2340px) {
+ html {
+  font-size: 28px;
+ }
+}
+
+@media (min-width: 2340px) and (max-width: 2640px) {
+ html {
+  font-size: 32px;
+ }
+}
