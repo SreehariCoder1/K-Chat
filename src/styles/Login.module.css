@@ -3,12 +3,13 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background-color: #f0f2f5;
   padding: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .card {
-  background: #ffffff;
+  background: #ffffffe0;
   padding: 1em 0.5em;
   border-radius: 1em;
   box-shadow:

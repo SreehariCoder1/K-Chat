@@ -1,5 +1,6 @@
 import { useState } from "react";
 import styles from "../styles/Register.module.css";
+import bgStyles from "../styles/backgroundAnimation.module.css";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,6 +20,9 @@ const Register = () => {
 
   return (
     <div className={styles.container}>
+      <div className={bgStyles.bg}></div>
+      <div className={`${bgStyles.bg} ${bgStyles.bg2}`}></div>
+      <div className={`${bgStyles.bg} ${bgStyles.bg3}`}></div>
       <div className={styles.card}>
         <div className={styles.logoContainer}>
           <span className={styles.palmTree}>🌴</span>
