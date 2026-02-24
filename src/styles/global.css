@@ -32,25 +32,25 @@ a {
 
 /* html */
 @media (min-width: 1440px) and (max-width: 1740px) {
- html {
-  font-size: 20px;
- }
+  html {
+    font-size: 20px;
+  }
 }
 
 @media (min-width: 1740px) and (max-width: 2040px) {
- html {
-  font-size: 24px;
- }
+  html {
+    font-size: 24px;
+  }
 }
 
 @media (min-width: 2040px) and (max-width: 2340px) {
- html {
-  font-size: 28px;
- }
+  html {
+    font-size: 28px;
+  }
 }
 
 @media (min-width: 2340px) and (max-width: 2640px) {
- html {
-  font-size: 32px;
- }
+  html {
+    font-size: 32px;
+  }
 }
