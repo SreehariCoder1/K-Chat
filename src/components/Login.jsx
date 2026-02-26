@@ -1,16 +1,26 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import styles from "../styles/Login.module.css";
 import bgStyles from "../styles/backgroundAnimation.module.css";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const { login, error } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const result = await login({ identifier, password });
+    if (result.success) {
+      navigate("/");
+    }
   };
 
   return (
@@ -26,11 +36,15 @@ const Login = () => {
         <p className={styles.subtitle}>Welcome back! Sign in to continue</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {error && <p className={styles.errorText}> {error} </p>}
+
           <div className={styles.inputGroup}>
             <input
               type="text"
               placeholder="Email or username"
               className={styles.input}
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
             />
           </div>
@@ -40,6 +54,8 @@ const Login = () => {
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               className={`${styles.input} ${styles.passwordInput}`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
             <button
@@ -95,9 +111,9 @@ const Login = () => {
 
         <p className={styles.registerText}>
           Don't have an account?
-          <button type="button" className={styles.registerLink}>
+          <Link to="/register" className={styles.registerLink}>
             Register Now
-          </button>
+          </Link>
         </p>
       </div>
     </div>

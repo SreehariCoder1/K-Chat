@@ -1,10 +1,24 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 import styles from "../styles/Register.module.css";
 import bgStyles from "../styles/backgroundAnimation.module.css";
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    gender: "",
+    age: "",
+    district: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [formError, setFormError] = useState("");
+  const { register, error } = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -14,8 +28,23 @@ const Register = () => {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+
+    const result = await register(formData);
+    if (result.success) {
+      navigate("/");
+    }
   };
 
   return (
@@ -31,13 +60,18 @@ const Register = () => {
         <p className={styles.subtitle}>Create an account and start chatting</p>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {error && <p className={styles.errorText}>{error}</p>}
+          {formError && <p className={styles.errorText}>{formError}</p>}
           <div className={styles.inputGroup}>
             <label className={styles.label}>Username</label>
             <div className={styles.inputWrapper}>
               <input
                 type="text"
+                name="username"
                 placeholder="Choose a username"
                 className={styles.input}
+                value={formData.username}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -48,9 +82,11 @@ const Register = () => {
               <label className={styles.label}>Gender</label>
               <div className={styles.inputWrapper}>
                 <select
+                  name="gender"
                   className={`${styles.input} ${styles.select}`}
+                  value={formData.gender}
+                  onChange={handleChange}
                   required
-                  defaultValue=""
                 >
                   <option value="" disabled>
                     Select gender
@@ -67,10 +103,13 @@ const Register = () => {
               <div className={styles.inputWrapper}>
                 <input
                   type="number"
+                  name="age"
                   placeholder="Your age"
                   className={styles.input}
                   min="13"
                   max="120"
+                  value={formData.age}
+                  onChange={handleChange}
                   required
                 />
               </div>
@@ -81,9 +120,11 @@ const Register = () => {
             <label className={styles.label}>District</label>
             <div className={styles.inputWrapper}>
               <select
+                name="district"
                 className={`${styles.input} ${styles.select}`}
+                value={formData.district}
+                onChange={handleChange}
                 required
-                defaultValue=""
               >
                 <option value="" disabled>
                   Select your district
@@ -111,8 +152,11 @@ const Register = () => {
             <div className={styles.inputWrapper}>
               <input
                 type="email"
+                name="email"
                 placeholder="you@example.com"
                 className={styles.input}
+                value={formData.email}
+                onChange={handleChange}
                 required
               />
             </div>
@@ -124,8 +168,11 @@ const Register = () => {
               <div className={styles.inputWrapper}>
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   placeholder="At least 6 characters"
                   className={`${styles.input} ${styles.passwordInput}`}
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                 />
                 <button
@@ -176,8 +223,11 @@ const Register = () => {
               <div className={styles.inputWrapper}>
                 <input
                   type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
                   placeholder="Confirm your password"
                   className={`${styles.input} ${styles.passwordInput}`}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
                   required
                 />
                 <button
@@ -233,9 +283,9 @@ const Register = () => {
 
         <p className={styles.loginText}>
           Already have an account?
-          <button type="button" className={styles.loginLink}>
+          <Link to="/login" className={styles.loginLink}>
             Login
-          </button>
+          </Link>
         </p>
       </div>
     </div>

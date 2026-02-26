@@ -183,6 +183,11 @@
   text-decoration: underline;
 }
 
+.errorText {
+  color: red;
+  text-align: center;
+}
+
 /* media queries */
 
 @media (min-width: 1740px) {
