@@ -178,6 +178,12 @@
   transform: translateY(0);
 }
 
+.loaderPlaceholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .loginText {
   margin-top: 1em;
   font-size: 0.9rem;

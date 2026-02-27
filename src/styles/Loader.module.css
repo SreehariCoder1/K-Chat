@@ -1,0 +1,30 @@
+.loader {
+  width: 3.1em;
+  aspect-ratio: 1;
+  display: grid;
+}
+.loader::before,
+.loader::after {
+  content: "";
+  grid-area: 1/1;
+  --c: no-repeat radial-gradient(farthest-side, #25b09b 92%, #0000);
+  background:
+    var(--c) 50% 0,
+    var(--c) 50% 100%,
+    var(--c) 100% 50%,
+    var(--c) 0 50%;
+  background-size: 0.75em 0.75em;
+  animation: l12 1s infinite;
+}
+.loader::before {
+  margin: 0.25em;
+  filter: hue-rotate(45deg);
+  background-size: 0.5em 0.5em;
+  animation-timing-function: linear;
+}
+
+@keyframes l12 {
+  100% {
+    transform: rotate(0.5turn);
+  }
+}

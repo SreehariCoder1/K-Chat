@@ -2,6 +2,7 @@ import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import RegistrationSuccess from "./RegistrationSuccess";
+import Loader from "./Loader";
 import styles from "../styles/Register.module.css";
 import bgStyles from "../styles/backgroundAnimation.module.css";
 
@@ -19,6 +20,7 @@ const Register = () => {
   });
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [isRegistering, setIsRegistering] = useState(false);
   const { register, error } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -43,7 +45,10 @@ const Register = () => {
       return;
     }
 
+    setIsRegistering(true);
     const result = await register(formData);
+    setIsRegistering(false);
+
     if (result.success) {
       setSuccessMessage(result.message);
     }
@@ -287,10 +292,19 @@ const Register = () => {
                   </div>
                 </div>
               </div>
-
-              <button type="submit" className={styles.registerBtn}>
-                REGISTER
-              </button>
+              {isRegistering ? (
+                <div className={styles.loaderPlaceholder}>
+                  <Loader />
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  className={styles.registerBtn}
+                  disabled={isRegistering}
+                >
+                  REGISTER
+                </button>
+              )}
             </form>
 
             <p className={styles.loginText}>
