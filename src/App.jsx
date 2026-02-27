@@ -9,6 +9,7 @@ import { useContext } from "react";
 import ChatLayout from "./components/ChatLayout";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import VerifyEmail from "./components/VerifyEmail";
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -61,6 +62,8 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
         </Routes>
       </Router>
     </AuthProvider>

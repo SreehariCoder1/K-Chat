@@ -46,8 +46,8 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await axios.post("/auth/register", userData);
-      setUser(response.data.user);
-      return { success: true };
+      // We do not set the user here, because they still need to verify their email
+      return { success: true, message: response.data.message };
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
       return {
