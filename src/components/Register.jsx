@@ -1,5 +1,6 @@
-import { useState, useContext } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useContext, useEffect } from "react";
+import { Link } from "react-router-dom";
+import zxcvbn from "zxcvbn";
 import { AuthContext } from "../context/AuthContext";
 import RegistrationSuccess from "./RegistrationSuccess";
 import Loader from "./Loader";
@@ -21,8 +22,20 @@ const Register = () => {
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const { register, error } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [passwordStrength, setPasswordStrength] = useState(null);
+  const { register, error, setError } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (setError) setError(null);
+  }, [setError]);
+
+  useEffect(() => {
+    if (formData.password) {
+      setPasswordStrength(zxcvbn(formData.password));
+    } else {
+      setPasswordStrength(null);
+    }
+  }, [formData.password]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -39,6 +52,16 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
+
+    if (formData.password.length < 8) {
+      setFormError("Password must be at least 8 characters long");
+      return;
+    }
+
+    if (formData.password.length > 128) {
+      setFormError("Password cannot exceed 128 characters");
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setFormError("Passwords do not match");
@@ -184,7 +207,7 @@ const Register = () => {
                     <input
                       type={showPassword ? "text" : "password"}
                       name="password"
-                      placeholder="At least 6 characters"
+                      placeholder="At least 8 characters"
                       className={`${styles.input} ${styles.passwordInput}`}
                       value={formData.password}
                       onChange={handleChange}
@@ -233,6 +256,27 @@ const Register = () => {
                       )}
                     </button>
                   </div>
+                  {formData.password && passwordStrength && (
+                    <div className={styles.strengthMeterContainer}>
+                      <div className={styles.strengthMeterBar}>
+                        <div
+                          className={`${styles.strengthMeterFill} ${styles[`strength${passwordStrength.score}`]}`}
+                          style={{
+                            width: `${passwordStrength.score !== 0 || formData.password.length > 0 ? (passwordStrength.score + 1) * 20 : 0}%`,
+                          }}
+                        ></div>
+                      </div>
+                      <p
+                        className={`${styles.strengthText} ${styles[`textStrength${passwordStrength.score}`]}`}
+                      >
+                        {
+                          ["Very Weak", "Weak", "Fair", "Good", "Strong"][
+                            passwordStrength.score
+                          ]
+                        }
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 <div className={styles.inputGroup}>

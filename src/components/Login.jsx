@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import styles from "../styles/Login.module.css";
@@ -8,8 +8,12 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const { login, error } = useContext(AuthContext);
+  const { login, error, setError } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (setError) setError(null);
+  }, [setError]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

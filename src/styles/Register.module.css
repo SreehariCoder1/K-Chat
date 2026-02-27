@@ -209,6 +209,65 @@
   text-align: center;
 }
 
+.strengthMeterContainer {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0 0.2rem;
+}
+
+.strengthMeterBar {
+  height: 0.25em;
+  background-color: #d7dade;
+  border-radius: 0.125em;
+  overflow: hidden;
+  margin-bottom: 0.3rem;
+}
+
+.strengthMeterFill {
+  height: 100%;
+  transition:
+    width 0.3s ease,
+    background-color 0.3s ease;
+}
+
+.strength0 {
+  background-color: #ef4444;
+}
+.strength1 {
+  background-color: #f97316;
+}
+.strength2 {
+  background-color: #eab308;
+}
+.strength3 {
+  background-color: #84cc16;
+}
+.strength4 {
+  background-color: #22c55e;
+}
+
+.strengthText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.textStrength0 {
+  color: #ef4444;
+}
+.textStrength1 {
+  color: #f97316;
+}
+.textStrength2 {
+  color: #eab308;
+}
+.textStrength3 {
+  color: #84cc16;
+}
+.textStrength4 {
+  color: #22c55e;
+}
+
 /* media queries */
 
 @media (min-width: 1740px) {
@@ -225,5 +284,8 @@
 
   .card {
     padding: 1.5em 0.5em;
+  }
+  .strengthText {
+    font-size: 0.75rem;
   }
 }
