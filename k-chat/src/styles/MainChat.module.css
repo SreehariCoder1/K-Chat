@@ -1,0 +1,82 @@
+.mainChat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f4f5f8;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.welcomeIcon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.welcomeTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.welcomeSubtitle {
+  color: #9ca3af;
+  text-align: center;
+  max-width: 400px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.inputArea {
+  padding: 16px 24px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  /* Not putting a top border as requested image doesn't show a strong one, but we can add a subtle one if needed */
+}
+
+.inputWrapper {
+  flex: 1;
+  display: flex;
+  background-color: #f3f4f6;
+  border-radius: 999px;
+  padding: 12px 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.sendBtn {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #a7f3d0; /* Light green that looks close to the image */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  margin-left: 12px;
+}
+
+/* Adjust send icon to point straight right slightly upwards */
+.sendIcon {
+  width: 20px;
+  height: 20px;
+  transform: rotate(45deg);
+  margin-right: 2px;
+}

@@ -53,6 +53,16 @@ const Register = () => {
     e.preventDefault();
     setFormError("");
 
+    if (formData.username.length < 3) {
+      setFormError("Username must be at least 3 characters long");
+      return;
+    }
+
+    if (formData.username.length > 30) {
+      setFormError("Username cannot exceed 30 characters");
+      return;
+    }
+
     if (formData.password.length < 8) {
       setFormError("Password must be at least 8 characters long");
       return;
@@ -108,6 +118,7 @@ const Register = () => {
                     className={styles.input}
                     value={formData.username}
                     onChange={handleChange}
+                    minLength={3}
                     required
                   />
                 </div>
