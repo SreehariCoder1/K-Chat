@@ -76,7 +76,7 @@ export const register = async (req, res) => {
       });
     } catch (error) {
       console.error("Email sending error:", error);
-      // Even if email fails, user is created but unverified. A robust system would have a "resend email" feature.
+      // Even if email fails, user is created but unverified.
       res.status(500).json({
         message:
           "User created, but there was an error sending the verification email.",
