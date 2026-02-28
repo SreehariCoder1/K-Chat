@@ -66,6 +66,36 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const forgotPassword = async (email) => {
+    setError(null);
+    try {
+      const response = await axios.post("/auth/forgot-password", { email });
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to process request");
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to process request",
+      };
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    setError(null);
+    try {
+      const response = await axios.post(`/auth/reset-password/${token}`, {
+        password,
+      });
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to reset password");
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to reset password",
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -74,6 +104,8 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    forgotPassword,
+    resetPassword,
   };
 
   return (

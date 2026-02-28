@@ -109,9 +109,9 @@ const Login = () => {
           </button>
         </form>
 
-        <button type="button" className={styles.forgotPassword}>
+        <Link to="/forgot-password" className={styles.forgotPassword}>
           Forgot Password ?
-        </button>
+        </Link>
 
         <p className={styles.registerText}>
           Don't have an account?

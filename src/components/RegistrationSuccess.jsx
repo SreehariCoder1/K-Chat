@@ -15,6 +15,7 @@ const RegistrationSuccess = ({ message }) => {
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className={styles.tickIcon}
         >
           <polyline points="20 6 9 17 4 12"></polyline>
         </svg>

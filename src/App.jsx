@@ -10,6 +10,8 @@ import ChatLayout from "./components/ChatLayout";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import VerifyEmail from "./components/VerifyEmail";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -64,6 +66,23 @@ const App = () => {
           />
 
           <Route path="/verify-email/:token" element={<VerifyEmail />} />
+
+          <Route
+            path="/forgot-password"
+            element={
+              <AuthRoute>
+                <ForgotPassword />
+              </AuthRoute>
+            }
+          />
+          <Route
+            path="/reset-password/:token"
+            element={
+              <AuthRoute>
+                <ResetPassword />
+              </AuthRoute>
+            }
+          />
         </Routes>
       </Router>
     </AuthProvider>

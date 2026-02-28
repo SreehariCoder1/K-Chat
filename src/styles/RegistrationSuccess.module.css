@@ -58,3 +58,8 @@
 .button:active {
   transform: translateY(0);
 }
+
+.tickIcon {
+  width: 2rem;
+  height: 2rem;
+}
