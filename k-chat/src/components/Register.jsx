@@ -1,6 +1,7 @@
 import { useState, useContext, useEffect } from "react";
 import { Link } from "react-router-dom";
 import zxcvbn from "zxcvbn";
+import ReCAPTCHA from "react-google-recaptcha";
 import { AuthContext } from "../context/AuthContext";
 import RegistrationSuccess from "./RegistrationSuccess";
 import Loader from "./Loader";
@@ -23,6 +24,7 @@ const Register = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState(null);
+  const [captchaToken, setCaptchaToken] = useState(null);
   const { register, error, setError } = useContext(AuthContext);
 
   useEffect(() => {
@@ -53,6 +55,11 @@ const Register = () => {
     e.preventDefault();
     setFormError("");
 
+    if (!captchaToken) {
+      setFormError("Please complete the CAPTCHA");
+      return;
+    }
+
     if (formData.username.length < 3) {
       setFormError("Username must be at least 3 characters long");
       return;
@@ -79,7 +86,7 @@ const Register = () => {
     }
 
     setIsRegistering(true);
-    const result = await register(formData);
+    const result = await register({ ...formData, captchaToken });
     setIsRegistering(false);
 
     if (result.success) {
@@ -347,6 +354,16 @@ const Register = () => {
                   </div>
                 </div>
               </div>
+
+              <ReCAPTCHA
+                sitekey={
+                  import.meta.env.VITE_RECAPTCHA_SITE_KEY ||
+                  "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+                } // Using Google's test key as fallback
+                onChange={(token) => setCaptchaToken(token)}
+                theme="light"
+              />
+
               {isRegistering ? (
                 <div className={styles.loaderPlaceholder}>
                   <Loader />

@@ -6,17 +6,37 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 export const register = async (req, res) => {
   try {
-    const { username, gender, age, district, email, password } = req.body;
+    const { username, gender, age, district, email, password, captchaToken } =
+      req.body;
 
     // Validation
-    if (!username || !gender || !age || !district || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (
+      !username ||
+      !gender ||
+      !age ||
+      !district ||
+      !email ||
+      !password ||
+      !captchaToken
+    ) {
+      return res
+        .status(400)
+        .json({ message: "All fields and CAPTCHA are required" });
     }
 
     if (username.length < 3 || username.length > 30) {
       return res
         .status(400)
         .json({ message: "Username must be between 3 and 30 characters" });
+    }
+
+    // Verify reCAPTCHA token
+    const verifyCaptchaUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY || "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"}&response=${captchaToken}`;
+    const captchaResponse = await fetch(verifyCaptchaUrl, { method: "POST" });
+    const captchaData = await captchaResponse.json();
+
+    if (!captchaData.success) {
+      return res.status(400).json({ message: "Invalid CAPTCHA token" });
     }
 
     // Check if user exists
