@@ -1,10 +1,26 @@
 import React, { useContext } from "react";
 import styles from "../styles/Sidebar.module.css";
-import { User, Filter, List, Search, Inbox, Heart, Power } from "lucide-react";
+import {
+  User,
+  Filter,
+  List,
+  Search,
+  Inbox,
+  Heart,
+  Power,
+  User as UserIcon,
+  UserRound,
+  UserCircle,
+} from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
+import { SocketContext } from "../context/SocketContext";
 
 const Sidebar = () => {
   const { user, logout } = useContext(AuthContext);
+  const { onlineUsers = [] } = useContext(SocketContext);
+  const otherOnlineUsers = onlineUsers.filter(
+    (u) => u._id !== user?.id && u._id !== user?._id,
+  );
   return (
     <div className={styles.sidebar}>
       <div className={styles.header}>
@@ -48,8 +64,50 @@ const Sidebar = () => {
       </div>
 
       <div className={styles.content}>
-        <div className={styles.contentTitle}>ONLINE — 0</div>
-        <div className={styles.emptyState}>No one here yet</div>
+        <div className={styles.contentTitle}>
+          ONLINE — {otherOnlineUsers.length}
+        </div>
+        {otherOnlineUsers.length === 0 ? (
+          <div className={styles.emptyState}>No one here yet</div>
+        ) : (
+          <div className={styles.onlineList}>
+            {otherOnlineUsers.map((u, idx) => {
+              const bgClass =
+                u.gender === "female"
+                  ? styles.femaleBg
+                  : u.gender === "other"
+                    ? styles.otherBg
+                    : styles.maleBg;
+
+              const AvatarIcon =
+                u.gender === "female"
+                  ? UserRound
+                  : u.gender === "other"
+                    ? UserCircle
+                    : UserIcon;
+
+              return (
+                <div
+                  key={`${u._id}-${idx}`}
+                  className={`${styles.onlineUserRow} ${bgClass}`}
+                >
+                  <div className={styles.userIconWrapper}>
+                    <AvatarIcon
+                      className={styles.userIconSolid}
+                      fill="currentColor"
+                    />
+                  </div>
+                  <div className={styles.userInfo}>
+                    <div className={styles.userNameText}>{u.username}</div>
+                    <div className={styles.userDetails}>
+                      {u.age} Yrs, {u.district}, Kerala
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className={styles.footer}>

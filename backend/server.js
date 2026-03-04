@@ -4,6 +4,9 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import http from "http";
+import { Server } from "socket.io";
+import User from "./models/User.js";
 
 dotenv.config();
 
@@ -31,11 +34,52 @@ app.use("/api/auth", authRoutes);
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGODB_URI;
 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: [
+      "http://localhost:5173",
+      "http://127.0.0.1:5173",
+      "http://localhost:5174",
+      "http://127.0.0.1:5174",
+    ],
+    credentials: true,
+  },
+});
+
+const onlineUsers = new Map();
+
+io.on("connection", (socket) => {
+  console.log("New user connected:", socket.id);
+
+  socket.on("addNewUser", async (userId) => {
+    try {
+      if (userId) {
+        const user = await User.findById(userId).select(
+          "username age gender district",
+        );
+        if (user) {
+          onlineUsers.set(socket.id, user);
+          io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+    onlineUsers.delete(socket.id);
+    io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
+  });
+});
+
 mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("Connected to MongoDB");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

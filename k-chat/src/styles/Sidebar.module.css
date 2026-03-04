@@ -83,22 +83,99 @@
 }
 
 .content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5em 0;
 }
 
 .contentTitle {
-  font-size: 0.8rem;
-  font-weight: bold;
-  color: #9ca3af;
-  margin-bottom: 20px;
-  letter-spacing: 0.5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #9ca3af;
+    margin-bottom: 0.5em;
+    letter-spacing: 0.5px;
+    padding: 0 0.7em;
 }
 
 .emptyState {
-  color: #9ca3af;
-  font-size: 0.9rem;
+    color: #9ca3af;
+    font-size: 0.9rem;
+    padding: 0 1.4em;
+}
+
+.onlineList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+}
+
+.onlineUserRow {
+    display: flex;
+    align-items: center;
+    padding: 0.7em 1.1em;
+    gap: 0.9em;
+}
+
+.maleBg {
+  background-color: #e0f2fe; /* Light blue */
+}
+
+.femaleBg {
+  background-color: #fce7f3; /* Light pink */
+}
+
+.otherBg {
+  background-color: #f3e8ff; /* Light purple */
+}
+
+.userIconWrapper {
+    width: 3.2em;
+    height: 3.2em;
+    border-radius: 50%;
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+}
+
+.maleBg .userIconWrapper {
+  border-color: #bae6fd;
+  color: #38bdf8;
+}
+
+.femaleBg .userIconWrapper {
+  border-color: #fbcfe8;
+  color: #f472b6;
+}
+
+.otherBg .userIconWrapper {
+  border-color: #e9d5ff;
+  color: #c084fc;
+}
+
+.userIconSolid {
+    width: 2em;
+    height: 2em;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.userNameText {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #000;
+}
+
+.userDetails {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin-top: 0.1em;
 }
 
 .footer {
