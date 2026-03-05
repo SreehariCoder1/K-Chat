@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import styles from "../styles/Sidebar.module.css";
 import {
   User,
@@ -11,21 +11,31 @@ import {
   User as UserIcon,
   UserRound,
   UserCircle,
+  PanelLeftClose,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout } = useContext(AuthContext);
   const { onlineUsers = [] } = useContext(SocketContext);
   const otherOnlineUsers = onlineUsers.filter(
     (u) => u._id !== user?.id && u._id !== user?._id,
   );
   return (
-    <div className={styles.sidebar}>
+    <div className={`${styles.sidebar} ${isOpen ? "" : styles.sidebarClosed}`}>
       <div className={styles.header}>
-        <span className={styles.treeIcon}>🌴</span>
-        <span>K-Chat</span>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <span className={styles.treeIcon}>🌴</span>
+          <span>K-Chat</span>
+        </div>
+        <button
+          className={styles.toggleBtn}
+          onClick={toggleSidebar}
+          title="Close Sidebar"
+        >
+          <PanelLeftClose className={styles.toggleIcon} size={20} />
+        </button>
       </div>
 
       <div className={styles.tabs}>
@@ -121,7 +131,7 @@ const Sidebar = () => {
           style={{ cursor: "pointer" }}
           title="Logout"
         >
-          <Power size={20} />
+          <Power className={styles.logoutIcon} size={20} />
         </div>
       </div>
     </div>

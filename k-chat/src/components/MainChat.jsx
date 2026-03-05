@@ -1,19 +1,20 @@
-import React from "react";
 import styles from "../styles/MainChat.module.css";
-import { Send } from "lucide-react";
+import { Send, PanelLeftOpen } from "lucide-react";
 
-const MainChat = () => {
+const MainChat = ({ isOpen, toggleSidebar }) => {
   return (
     <div className={styles.mainChat}>
-      {/* Intentionally omitting the specific header according to user instructions */}
-
+      {!isOpen && (
+        <button
+          className={styles.openSidebarBtn}
+          onClick={toggleSidebar}
+          title="Open Sidebar"
+        >
+          <PanelLeftOpen className={styles.toggleBtn} size={24} />
+        </button>
+      )}
       <div className={styles.content}>
-        <div className={styles.welcomeIcon}>🌴</div>
         <h2 className={styles.welcomeTitle}>Welcome to K-Chat!</h2>
-        <p className={styles.welcomeSubtitle}>
-          Select a Kerala district from the sidebar to join a chat room and
-          connect with people from that area.
-        </p>
       </div>
 
       <div className={styles.inputArea}>

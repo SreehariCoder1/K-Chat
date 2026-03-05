@@ -4,6 +4,29 @@
   flex-direction: column;
   height: 100vh;
   background-color: #f4f5f8;
+  position: relative;
+}
+
+.openSidebarBtn {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.openSidebarBtn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
 }
 
 .content {
@@ -12,43 +35,27 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-}
-
-.welcomeIcon {
-  font-size: 4rem;
-  margin-bottom: 20px;
 }
 
 .welcomeTitle {
   font-size: 1.5rem;
   font-weight: 600;
   color: #4b5563;
-  margin-bottom: 12px;
-}
-
-.welcomeSubtitle {
-  color: #9ca3af;
-  text-align: center;
-  max-width: 400px;
-  font-size: 0.95rem;
-  line-height: 1.5;
 }
 
 .inputArea {
-  padding: 16px 24px;
+  padding: 0.5em 1.5em;
   background-color: #ffffff;
   display: flex;
   align-items: center;
-  /* Not putting a top border as requested image doesn't show a strong one, but we can add a subtle one if needed */
 }
 
 .inputWrapper {
   flex: 1;
   display: flex;
   background-color: #f3f4f6;
-  border-radius: 999px;
-  padding: 12px 20px;
+  border-radius: 1em;
+  padding: 0.6em 1.2em;
   border: 1px solid #e5e7eb;
 }
 
@@ -62,21 +69,32 @@
 }
 
 .sendBtn {
-  min-width: 44px;
-  height: 44px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: 50%;
-  background-color: #a7f3d0; /* Light green that looks close to the image */
+  background-color: #a7f3d0;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  margin-left: 12px;
+  margin-left: 0.7em;
 }
 
-/* Adjust send icon to point straight right slightly upwards */
 .sendIcon {
-  width: 20px;
-  height: 20px;
+  width: 1.5rem;
+  height: 1.5rem;
   transform: rotate(45deg);
-  margin-right: 2px;
+  margin-right: 0.1em;
+}
+
+.toggleBtn {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* media queries */
+@media (min-width: 500px) and (max-width: 768px) {
+.input {
+  font-size: 0.8rem;
+}
 }
