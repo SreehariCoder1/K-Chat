@@ -5,6 +5,7 @@ import styles from "../styles/ChatLayout.module.css";
 
 const ChatLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
@@ -12,8 +13,17 @@ const ChatLayout = () => {
 
   return (
     <div className={styles.layout}>
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-      <MainChat isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        selectedUser={selectedUser}
+        setSelectedUser={setSelectedUser}
+      />
+      <MainChat
+        isOpen={isSidebarOpen}
+        toggleSidebar={toggleSidebar}
+        selectedUser={selectedUser}
+      />
     </div>
   );
 };

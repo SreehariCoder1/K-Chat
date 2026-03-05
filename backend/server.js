@@ -4,9 +4,11 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
 import User from "./models/User.js";
+import MessageRepository from "./repositories/MessageRepository.js";
 
 dotenv.config();
 
@@ -29,6 +31,7 @@ app.use(
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Database connection
 const PORT = process.env.PORT || 5000;
@@ -48,6 +51,7 @@ const io = new Server(server, {
 });
 
 const onlineUsers = new Map();
+const userSocketMap = new Map();
 
 io.on("connection", (socket) => {
   console.log("New user connected:", socket.id);
@@ -60,6 +64,7 @@ io.on("connection", (socket) => {
         );
         if (user) {
           onlineUsers.set(socket.id, user);
+          userSocketMap.set(userId, socket.id);
           io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
         }
       }
@@ -68,8 +73,31 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
+    try {
+      // Save to DB
+      const savedMessage = await MessageRepository.saveMessage({
+        senderId,
+        receiverId,
+        message,
+      });
+
+      // Real-time emit to receiver if online
+      const receiverSocketId = userSocketMap.get(receiverId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receiveMessage", savedMessage);
+      }
+    } catch (error) {
+      console.error("Socket error on sendMessage:", error);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      userSocketMap.delete(user._id.toString());
+    }
     onlineUsers.delete(socket.id);
     io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
   });

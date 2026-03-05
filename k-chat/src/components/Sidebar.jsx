@@ -16,7 +16,7 @@ import {
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 
-const Sidebar = ({ isOpen, toggleSidebar }) => {
+const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout } = useContext(AuthContext);
   const { onlineUsers = [] } = useContext(SocketContext);
   const otherOnlineUsers = onlineUsers.filter(
@@ -61,7 +61,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <span>Search</span>
         </div>
         <div className={styles.actionItem}>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative", display: "flex" }}>
             <Inbox className={styles.icon} />
             <span className={styles.badge}>24</span>
           </div>
@@ -96,10 +96,23 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     ? UserCircle
                     : UserIcon;
 
+              const isSelected = selectedUser?._id === u._id;
+
               return (
                 <div
                   key={`${u._id}-${idx}`}
                   className={`${styles.onlineUserRow} ${bgClass}`}
+                  onClick={() => {
+                    setSelectedUser(u);
+                    if (window.innerWidth <= 500) {
+                      toggleSidebar();
+                    }
+                  }}
+                  style={{
+                    border: isSelected
+                      ? "2px solid #fff"
+                      : "2px solid transparent",
+                  }}
                 >
                   <div className={styles.userIconWrapper}>
                     <AvatarIcon

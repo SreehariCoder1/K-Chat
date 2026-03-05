@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
+*.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# OS files
+.DS_Store
+Thumbs.db

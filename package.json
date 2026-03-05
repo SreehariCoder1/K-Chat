@@ -1,0 +1,32 @@
+{
+  "name": "project_7",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SreehariCoder1/K-Chat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/SreehariCoder1/K-Chat/issues"
+  },
+  "homepage": "https://github.com/SreehariCoder1/K-Chat#readme",
+  "description": "",
+  "devDependencies": {
+    "eslint": "^10.0.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "k-chat/**/*": "prettier --write",
+    "backend/**/*": "prettier --write"
+  }
+}
