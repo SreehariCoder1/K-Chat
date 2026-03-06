@@ -1,20 +1,82 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useRef,
+  useCallback,
+} from "react";
 import styles from "../styles/MainChat.module.css";
 import { Send, PanelLeftOpen } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 
+import { formatDateLabel, formatTime } from "../utils/dateUtils";
+
 const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
+  const [floatingDate, setFloatingDate] = useState("");
+  const [isScrolling, setIsScrolling] = useState(false);
+  const messagesContainerRef = useRef(null);
+  const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  const handleScroll = useCallback(() => {
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+    const dateElements = container.querySelectorAll("[data-date]");
+
+    let visibleDate = "";
+
+    for (let i = 0; i < dateElements.length; i++) {
+      const el = dateElements[i];
+      const rect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+
+      if (rect.top <= containerRect.top + 50) {
+        visibleDate = el.getAttribute("data-date");
+      } else if (visibleDate === "" && rect.top > containerRect.top) {
+        // Fallback if we scroll fast: pick the first one in view
+        visibleDate = el.getAttribute("data-date");
+        break;
+      } else {
+        break; // Stop looking since elements are ordered
+      }
+    }
+
+    setFloatingDate(visibleDate);
+
+    setIsScrolling(true);
+
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1500); // Hide after 1.5s of no scroll activity
+  }, []);
+
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [handleScroll, messages]);
+
+  // Initial calculation
+  useEffect(() => {
+    handleScroll();
+  }, [messages, handleScroll]);
 
   useEffect(() => {
     if (selectedUser) {
@@ -62,6 +124,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       senderId: userId,
       receiverId: selectedUser._id,
       message: newMessage,
+      createdAt: new Date().toISOString(),
     };
 
     // Optimistic update
@@ -112,27 +175,55 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
       </div>
 
-      <div className={styles.messagesContainer}>
-        {messages.map((m) => {
+      {floatingDate && (
+        <div
+          className={`${styles.floatingDateContainer} ${isScrolling ? styles.visible : ""}`}
+        >
+          <span className={styles.floatingDate}>{floatingDate}</span>
+        </div>
+      )}
+
+      <div className={styles.messagesContainer} ref={messagesContainerRef}>
+        {messages.map((m, index) => {
           const userId = user.id || user._id;
           const isSender = m.senderId === userId;
+
+          const messageDateLabel = formatDateLabel(m.createdAt);
+          const prevMessageDateLabel =
+            index > 0 ? formatDateLabel(messages[index - 1].createdAt) : null;
+          const showDateSeparator = messageDateLabel !== prevMessageDateLabel;
+
+          const messageTime = formatTime(m.createdAt);
+
           return (
-            <div
-              key={m._id}
-              className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
-            >
+            <React.Fragment key={m._id || index}>
+              {showDateSeparator && (
+                <div
+                  className={styles.dateSeparatorWrapper}
+                  data-date={messageDateLabel}
+                >
+                  <span className={styles.dateSeparator}>
+                    {messageDateLabel}
+                  </span>
+                </div>
+              )}
               <div
-                className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
               >
-                {/* Tail for receiver (left side) */}
-                {!isSender && <div className={styles.tailReceiver} />}
+                <div
+                  className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                >
+                  {/* Tail for receiver (left side) */}
+                  {!isSender && <div className={styles.tailReceiver} />}
 
-                {/* Tail for sender (right side) */}
-                {isSender && <div className={styles.tailSender} />}
+                  {/* Tail for sender (right side) */}
+                  {isSender && <div className={styles.tailSender} />}
 
-                {m.message}
+                  <span className={styles.messageText}>{m.message}</span>
+                  <span className={styles.messageTime}>{messageTime}</span>
+                </div>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
         <div ref={messagesEndRef} />
