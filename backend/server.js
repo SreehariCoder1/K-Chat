@@ -73,24 +73,34 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("sendMessage", async ({ senderId, receiverId, message }) => {
-    try {
-      // Save to DB
-      const savedMessage = await MessageRepository.saveMessage({
-        senderId,
-        receiverId,
-        message,
-      });
+  socket.on(
+    "sendMessage",
+    async ({ senderId, receiverId, message, replyTo }) => {
+      try {
+        // Save to DB
+        let savedMessage = await MessageRepository.saveMessage({
+          senderId,
+          receiverId,
+          message,
+          replyTo,
+        });
 
-      // Real-time emit to receiver if online
-      const receiverSocketId = userSocketMap.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("receiveMessage", savedMessage);
+        // Populate replyTo for realtime receiver update
+        savedMessage = await savedMessage.populate(
+          "replyTo",
+          "message senderId",
+        );
+
+        // Real-time emit to receiver if online
+        const receiverSocketId = userSocketMap.get(receiverId);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("receiveMessage", savedMessage);
+        }
+      } catch (error) {
+        console.error("Socket error on sendMessage:", error);
       }
-    } catch (error) {
-      console.error("Socket error on sendMessage:", error);
-    }
-  });
+    },
+  );
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);

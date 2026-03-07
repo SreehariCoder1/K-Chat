@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import styles from "../styles/MainChat.module.css";
-import { Send, PanelLeftOpen } from "lucide-react";
+import { Send, PanelLeftOpen, Reply, X } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
@@ -20,6 +20,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const { socket } = useContext(SocketContext);
   const [floatingDate, setFloatingDate] = useState("");
   const [isScrolling, setIsScrolling] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
   const messagesContainerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -124,17 +125,29 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       senderId: userId,
       receiverId: selectedUser._id,
       message: newMessage,
+      replyTo: replyingTo ? replyingTo._id : null,
       createdAt: new Date().toISOString(),
     };
 
     // Optimistic update
     setMessages((prev) => [
       ...prev,
-      { ...messageData, _id: Date.now().toString() },
+      {
+        ...messageData,
+        _id: Date.now().toString(),
+        replyTo: replyingTo
+          ? {
+              _id: replyingTo._id,
+              message: replyingTo.message,
+              senderId: replyingTo.senderId,
+            }
+          : null,
+      },
     ]);
 
     socket.emit("sendMessage", messageData);
     setNewMessage("");
+    setReplyingTo(null);
   };
 
   if (!selectedUser) {
@@ -207,20 +220,69 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                   </span>
                 </div>
               )}
-              <div
-                className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
-              >
+              <div id={`msg-${m._id}`} className={styles.messageWrapper}>
                 <div
-                  className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                  className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
                 >
-                  {/* Tail for receiver (left side) */}
-                  {!isSender && <div className={styles.tailReceiver} />}
+                  <div
+                    className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                  >
+                    {/* Reply Action Button - Top Right */}
+                    <button
+                      className={styles.replyBtn}
+                      onClick={() => setReplyingTo(m)}
+                      title="Reply"
+                    >
+                      <Reply className={styles.replyIcon} size={12} />
+                    </button>
 
-                  {/* Tail for sender (right side) */}
-                  {isSender && <div className={styles.tailSender} />}
+                    {/* Tail for receiver (left side) */}
+                    {!isSender && <div className={styles.tailReceiver} />}
 
-                  <span className={styles.messageText}>{m.message}</span>
-                  <span className={styles.messageTime}>{messageTime}</span>
+                    {/* Tail for sender (right side) */}
+                    {isSender && <div className={styles.tailSender} />}
+
+                    {/* Replied Snippet */}
+                    {m.replyTo && typeof m.replyTo === "object" && (
+                      <div
+                        className={styles.repliedSnippet}
+                        onClick={() => {
+                          if (m.replyTo._id) {
+                            const el = document.getElementById(
+                              `msg-${m.replyTo._id}`,
+                            );
+                            if (el) {
+                              el.scrollIntoView({
+                                behavior: "auto",
+                                block: "center",
+                              });
+                              // Remove class if it's already there to re-trigger animation
+                              el.classList.remove(styles.highlightedMessage);
+                              // small delay to force reflow and restart animation
+                              setTimeout(() => {
+                                el.classList.add(styles.highlightedMessage);
+                                setTimeout(() => {
+                                  el.classList.remove(
+                                    styles.highlightedMessage,
+                                  );
+                                }, 2000); // match css duration
+                              }, 10);
+                            }
+                          }
+                        }}
+                      >
+                        <span className={styles.repliedSender}>
+                          {m.replyTo.senderId === userId
+                            ? "You"
+                            : selectedUser.username}
+                        </span>
+                        {m.replyTo.message}
+                      </div>
+                    )}
+
+                    <span className={styles.messageText}>{m.message}</span>
+                    <span className={styles.messageTime}>{messageTime}</span>
+                  </div>
                 </div>
               </div>
             </React.Fragment>
@@ -228,6 +290,28 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         })}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Reply Preview Banner */}
+      {replyingTo && (
+        <div className={styles.replyPreviewContainer}>
+          <div className={styles.replyPreviewText}>
+            <strong>
+              {replyingTo.senderId === (user.id || user._id)
+                ? "Replying to yourself"
+                : `Replying to ${selectedUser.username}`}
+              :
+            </strong>{" "}
+            {replyingTo.message}
+          </div>
+          <button
+            type="button"
+            className={styles.cancelReplyBtn}
+            onClick={() => setReplyingTo(null)}
+          >
+            <X className={styles.cancelIcon} size={16} />
+          </button>
+        </div>
+      )}
 
       <form className={styles.inputArea} onSubmit={handleSendMessage}>
         <div className={styles.inputWrapper}>

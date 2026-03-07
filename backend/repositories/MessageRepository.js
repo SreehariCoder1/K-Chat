@@ -12,7 +12,9 @@ class MessageRepository {
         { senderId: userId1, receiverId: userId2 },
         { senderId: userId2, receiverId: userId1 },
       ],
-    }).sort({ createdAt: 1 }); // Chronological order
+    })
+      .populate("replyTo", "message senderId")
+      .sort({ createdAt: 1 }); // Chronological order
   }
 }
 
