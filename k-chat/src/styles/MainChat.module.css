@@ -48,7 +48,7 @@
   padding: 0.5em 1.5em;
   background-color: #ffffff;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
 }
 
 .inputWrapper {
@@ -56,7 +56,7 @@
   display: flex;
   background-color: #f3f4f6;
   border-radius: 1em;
-  padding: 0.6em 1.2em;
+  padding: 0.6em 0.4em;
   border: 1px solid #e5e7eb;
 }
 
@@ -67,6 +67,20 @@
   outline: none;
   font-size: 0.95rem;
   color: #374151;
+  resize: none;
+  max-height: 30vh;
+  overflow-y: auto;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.input::-webkit-scrollbar {
+  width: 0.3em;
+}
+
+.input::-webkit-scrollbar-thumb {
+  background-color: #57c592;
+  border-radius: 1em;
 }
 
 .sendBtn {

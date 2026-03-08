@@ -24,6 +24,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const messagesContainerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -130,8 +131,22 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [newMessage]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
+    }
+  };
+
   const handleSendMessage = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!newMessage.trim() || !selectedUser) return;
 
     const userId = user.id || user._id;
@@ -369,12 +384,14 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
       <form className={styles.inputArea} onSubmit={handleSendMessage}>
         <div className={styles.inputWrapper}>
-          <input
-            type="text"
+          <textarea
+            ref={textareaRef}
             className={styles.input}
             placeholder="Type a message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
           />
         </div>
         <button
