@@ -16,6 +16,16 @@ class MessageRepository {
       .populate("replyTo", "message senderId")
       .sort({ createdAt: 1 }); // Chronological order
   }
+
+  async getMessageById(messageId) {
+    return await Message.findById(messageId);
+  }
+
+  async updateMessage(messageId, updateData) {
+    return await Message.findByIdAndUpdate(messageId, updateData, {
+      new: true,
+    });
+  }
 }
 
 export default new MessageRepository();

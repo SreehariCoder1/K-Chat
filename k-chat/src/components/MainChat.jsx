@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import styles from "../styles/MainChat.module.css";
-import { Send, PanelLeftOpen, Reply, X } from "lucide-react";
+import { Send, PanelLeftOpen, Reply, X, Trash } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
@@ -106,10 +106,25 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       }
     };
 
-    socket.on("receiveMessage", handleReceiveMessage);
+    const handleMessageDeleted = (deletedMessage) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === deletedMessage._id ? deletedMessage : msg,
+        ),
+      );
+      if (replyingTo && replyingTo._id === deletedMessage._id) {
+        setReplyingTo(null);
+      }
+    };
 
-    return () => socket.off("receiveMessage", handleReceiveMessage);
-  }, [socket, selectedUser]);
+    socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("messageDeleted", handleMessageDeleted);
+
+    return () => {
+      socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("messageDeleted", handleMessageDeleted);
+    };
+  }, [socket, selectedUser, replyingTo]);
 
   useEffect(() => {
     scrollToBottom();
@@ -129,12 +144,14 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       createdAt: new Date().toISOString(),
     };
 
+    const fakeId = Date.now().toString();
+
     // Optimistic update
     setMessages((prev) => [
       ...prev,
       {
         ...messageData,
-        _id: Date.now().toString(),
+        _id: fakeId,
         replyTo: replyingTo
           ? {
               _id: replyingTo._id,
@@ -145,9 +162,21 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       },
     ]);
 
-    socket.emit("sendMessage", messageData);
+    socket.emit("sendMessage", messageData, (savedMessage) => {
+      if (savedMessage && !savedMessage.error) {
+        setMessages((prev) =>
+          prev.map((m) => (m._id === fakeId ? savedMessage : m)),
+        );
+      }
+    });
     setNewMessage("");
     setReplyingTo(null);
+  };
+
+  const handleDeleteMessage = (messageId) => {
+    if (socket) {
+      socket.emit("deleteMessage", { messageId });
+    }
   };
 
   if (!selectedUser) {
@@ -208,6 +237,11 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
           const messageTime = formatTime(m.createdAt);
 
+          // Check if message is less than 15 mins old
+          const isUnder15Mins =
+            (new Date() - new Date(m.createdAt)) / 60000 <= 15;
+          const canDelete = isSender && isUnder15Mins && !m.isDeleted;
+
           return (
             <React.Fragment key={m._id || index}>
               {showDateSeparator && (
@@ -227,14 +261,73 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                   <div
                     className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
                   >
-                    {/* Reply Action Button - Top Right */}
-                    <button
-                      className={styles.replyBtn}
-                      onClick={() => setReplyingTo(m)}
-                      title="Reply"
-                    >
-                      <Reply className={styles.replyIcon} size={12} />
-                    </button>
+                    {m.isDeleted ? (
+                      <span className={styles.deletedText}>{m.message}</span>
+                    ) : (
+                      <>
+                        {/* Reply Action Button - Top Right */}
+                        <button
+                          className={styles.replyBtn}
+                          onClick={() => setReplyingTo(m)}
+                          title="Reply"
+                        >
+                          <Reply className={styles.replyIcon} size={12} />
+                        </button>
+
+                        {/* Delete Action Button */}
+                        {canDelete && (
+                          <button
+                            className={styles.deleteBtn}
+                            onClick={() => handleDeleteMessage(m._id)}
+                            title="Delete message"
+                          >
+                            <Trash className={styles.deleteIcon} size={12} />
+                          </button>
+                        )}
+
+                        {/* Replied Snippet */}
+                        {m.replyTo && typeof m.replyTo === "object" && (
+                          <div
+                            className={styles.repliedSnippet}
+                            onClick={() => {
+                              if (m.replyTo._id) {
+                                const el = document.getElementById(
+                                  `msg-${m.replyTo._id}`,
+                                );
+                                if (el) {
+                                  el.scrollIntoView({
+                                    behavior: "auto",
+                                    block: "center",
+                                  });
+                                  // Remove class if it's already there to re-trigger animation
+                                  el.classList.remove(
+                                    styles.highlightedMessage,
+                                  );
+                                  // small delay to force reflow and restart animation
+                                  setTimeout(() => {
+                                    el.classList.add(styles.highlightedMessage);
+                                    setTimeout(() => {
+                                      el.classList.remove(
+                                        styles.highlightedMessage,
+                                      );
+                                    }, 2000); // match css duration
+                                  }, 10);
+                                }
+                              }
+                            }}
+                          >
+                            <span className={styles.repliedSender}>
+                              {m.replyTo.senderId === userId
+                                ? "You"
+                                : selectedUser.username}
+                            </span>
+                            {m.replyTo.message}
+                          </div>
+                        )}
+
+                        <span className={styles.messageText}>{m.message}</span>
+                      </>
+                    )}
 
                     {/* Tail for receiver (left side) */}
                     {!isSender && <div className={styles.tailReceiver} />}
@@ -242,45 +335,6 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                     {/* Tail for sender (right side) */}
                     {isSender && <div className={styles.tailSender} />}
 
-                    {/* Replied Snippet */}
-                    {m.replyTo && typeof m.replyTo === "object" && (
-                      <div
-                        className={styles.repliedSnippet}
-                        onClick={() => {
-                          if (m.replyTo._id) {
-                            const el = document.getElementById(
-                              `msg-${m.replyTo._id}`,
-                            );
-                            if (el) {
-                              el.scrollIntoView({
-                                behavior: "auto",
-                                block: "center",
-                              });
-                              // Remove class if it's already there to re-trigger animation
-                              el.classList.remove(styles.highlightedMessage);
-                              // small delay to force reflow and restart animation
-                              setTimeout(() => {
-                                el.classList.add(styles.highlightedMessage);
-                                setTimeout(() => {
-                                  el.classList.remove(
-                                    styles.highlightedMessage,
-                                  );
-                                }, 2000); // match css duration
-                              }, 10);
-                            }
-                          }
-                        }}
-                      >
-                        <span className={styles.repliedSender}>
-                          {m.replyTo.senderId === userId
-                            ? "You"
-                            : selectedUser.username}
-                        </span>
-                        {m.replyTo.message}
-                      </div>
-                    )}
-
-                    <span className={styles.messageText}>{m.message}</span>
                     <span className={styles.messageTime}>{messageTime}</span>
                   </div>
                 </div>

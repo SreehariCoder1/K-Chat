@@ -75,7 +75,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "sendMessage",
-    async ({ senderId, receiverId, message, replyTo }) => {
+    async ({ senderId, receiverId, message, replyTo }, callback) => {
       try {
         // Save to DB
         let savedMessage = await MessageRepository.saveMessage({
@@ -96,11 +96,62 @@ io.on("connection", (socket) => {
         if (receiverSocketId) {
           io.to(receiverSocketId).emit("receiveMessage", savedMessage);
         }
+
+        // Return the saved message to the sender so they get the real DB _id
+        if (typeof callback === "function") {
+          callback(savedMessage);
+        }
       } catch (error) {
         console.error("Socket error on sendMessage:", error);
+        if (typeof callback === "function") {
+          callback({ error: "Failed to send message" });
+        }
       }
     },
   );
+
+  socket.on("deleteMessage", async ({ messageId }) => {
+    try {
+      const message = await MessageRepository.getMessageById(messageId);
+      if (!message) return;
+
+      const user = onlineUsers.get(socket.id);
+      if (!user) return; // User must be online and authenticated in our map
+
+      // Verify sender
+      if (message.senderId.toString() !== user._id.toString()) return;
+
+      // Verify time difference (<= 15 minutes)
+      const now = new Date();
+      const messageTime = new Date(message.createdAt);
+      const diffMs = now - messageTime;
+      const diffMins = Math.floor(diffMs / 60000);
+
+      if (diffMins <= 15 && !message.isDeleted) {
+        const updatedMessage = await MessageRepository.updateMessage(
+          messageId,
+          {
+            isDeleted: true,
+            message: "This message was deleted",
+            replyTo: null,
+          },
+        );
+
+        // Broadcast to receiver if online
+        const receiverSocketId = userSocketMap.get(
+          message.receiverId.toString(),
+        );
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("messageDeleted", updatedMessage);
+        }
+
+        // emit back to sender to update their UI definitively
+        socket.emit("messageDeleted", updatedMessage);
+      }
+    } catch (error) {
+      console.error("Socket error on deleteMessage:", error);
+    }
+  });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);

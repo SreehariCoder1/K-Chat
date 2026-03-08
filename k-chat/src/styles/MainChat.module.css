@@ -267,8 +267,8 @@
 /* Reply Button */
 .replyBtn {
   position: absolute;
-  top: 0.3em;
-  right: 0.3em;
+  top: 0.1rem;
+  right: 0.1rem;
   background: #0da40d;
   border-radius: 50%;
   width: 1.65rem;
@@ -282,7 +282,27 @@
   z-index: 2;
 }
 
-.messageBubble:hover .replyBtn {
+.deleteBtn {
+  position: absolute;
+  top: 0.1rem;
+  right: 2.01rem;
+  background: rgb(220 38 38);
+  border-radius: 50%;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  opacity: 0;
+  transition:
+    opacity 0.2s ease,
+    background 0.2s ease;
+  z-index: 2;
+}
+
+.messageBubble:hover .replyBtn,
+.messageBubble:hover .deleteBtn {
   opacity: 1;
 }
 
@@ -290,7 +310,12 @@
   background: rgba(0, 0, 0, 0.5);
 }
 
-.replyIcon {
+.deleteBtn:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.replyIcon,
+.deleteIcon {
   width: 1rem;
   height: 1rem;
 }
@@ -307,7 +332,7 @@
   border-radius: 0.5em 0.5em 0 0;
   border: 1px solid #e5e7eb;
   border-bottom: none;
-  width: 99vw;
+  width: 99%;
 }
 
 .replyPreviewText {
@@ -363,6 +388,20 @@
   font-size: 0.75rem;
   margin-bottom: 0.1em;
   display: block;
+}
+
+/* Deleted Message Text */
+.deletedText {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.bubbleReceiver .deletedText {
+  color: rgba(0, 0, 0, 0.5);
 }
 
 /* media queries */
