@@ -13,6 +13,31 @@ import { SocketContext } from "../context/SocketContext";
 
 import { formatDateLabel, formatTime } from "../utils/dateUtils";
 
+const renderMessageWithLinks = (text) => {
+  if (!text) return text;
+  const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+  const parts = text.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      const href = part.startsWith("www.") ? `http://${part}` : part;
+      return (
+        <a
+          key={index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.messageLink}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+};
+
 const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -336,11 +361,13 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                                 ? "You"
                                 : selectedUser.username}
                             </span>
-                            {m.replyTo.message}
+                            {renderMessageWithLinks(m.replyTo.message)}
                           </div>
                         )}
 
-                        <span className={styles.messageText}>{m.message}</span>
+                        <span className={styles.messageText}>
+                          {renderMessageWithLinks(m.message)}
+                        </span>
                       </>
                     )}
 

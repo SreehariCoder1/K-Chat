@@ -214,6 +214,18 @@
   white-space: pre-wrap;
 }
 
+.messageLink {
+  text-decoration: underline;
+}
+
+.bubbleSender .messageLink {
+  color: #daddeb;
+}
+
+.bubbleReceiver .messageLink {
+  color: #2563eb;
+}
+
 .messageTime {
   font-size: 0.65rem;
   position: absolute;
