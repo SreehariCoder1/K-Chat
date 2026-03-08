@@ -392,6 +392,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
+            maxLength={2000}
           />
         </div>
         <button

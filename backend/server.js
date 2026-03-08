@@ -77,6 +77,17 @@ io.on("connection", (socket) => {
     "sendMessage",
     async ({ senderId, receiverId, message, replyTo }, callback) => {
       try {
+        if (!message || message.trim().length === 0) {
+          if (typeof callback === "function")
+            callback({ error: "Message cannot be empty." });
+          return;
+        }
+        if (message.length > 2000) {
+          if (typeof callback === "function")
+            callback({ error: "Message exceeds 2000 characters limit." });
+          return;
+        }
+
         // Save to DB
         let savedMessage = await MessageRepository.saveMessage({
           senderId,

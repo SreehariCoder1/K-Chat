@@ -15,6 +15,7 @@ const messageSchema = new mongoose.Schema(
     message: {
       type: String,
       required: true,
+      maxlength: 2000,
     },
     replyTo: {
       type: mongoose.Schema.Types.ObjectId,
