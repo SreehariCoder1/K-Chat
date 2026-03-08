@@ -6,7 +6,14 @@ import React, {
   useCallback,
 } from "react";
 import styles from "../styles/MainChat.module.css";
-import { Send, PanelLeftOpen, Reply, X, Trash } from "lucide-react";
+import {
+  Send,
+  PanelLeftOpen,
+  Reply,
+  X,
+  Trash,
+  ChevronDown,
+} from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
@@ -46,6 +53,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [floatingDate, setFloatingDate] = useState("");
   const [isScrolling, setIsScrolling] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
   const messagesContainerRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -59,6 +67,13 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     if (!messagesContainerRef.current) return;
 
     const container = messagesContainerRef.current;
+
+    // Check if scrolled up more than 150px
+    const isScrolledUp =
+      container.scrollHeight - container.scrollTop - container.clientHeight >
+      150;
+    setShowScrollBtn(isScrolledUp);
+
     const dateElements = container.querySelectorAll("[data-date]");
 
     let visibleDate = "";
@@ -257,15 +272,14 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
       </div>
 
-      {floatingDate && (
-        <div
-          className={`${styles.floatingDateContainer} ${isScrolling ? styles.visible : ""}`}
-        >
-          <span className={styles.floatingDate}>{floatingDate}</span>
-        </div>
-      )}
-
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
+        {floatingDate && (
+          <div
+            className={`${styles.floatingDateContainer} ${isScrolling ? styles.visible : ""}`}
+          >
+            <span className={styles.floatingDate}>{floatingDate}</span>
+          </div>
+        )}
         {messages.map((m, index) => {
           const userId = user.id || user._id;
           const isSender = m.senderId === userId;
@@ -386,6 +400,18 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         })}
         <div ref={messagesEndRef} />
       </div>
+
+      {showScrollBtn && (
+        <button
+          className={styles.scrollDownBtn}
+          onClick={() =>
+            messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
+          }
+          title="Scroll to bottom"
+        >
+          <ChevronDown size={20} />
+        </button>
+      )}
 
       {/* Reply Preview Banner */}
       {replyingTo && (

@@ -130,6 +130,7 @@
   flex-direction: column;
   gap: 0.625em;
   justify-content: flex-start;
+  scrollbar-color: #57c592 transparent;
 }
 
 .messageRow {
@@ -152,12 +153,13 @@
 
 /* Date */
 .floatingDateContainer {
-  position: absolute;
-  top: 4.5rem;
-  left: 0;
+  position: sticky;
+  top: 0.5rem;
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
+  height: 0;
   z-index: 5;
   pointer-events: none;
   opacity: 0;
@@ -429,6 +431,32 @@
 
 .bubbleReceiver .deletedText {
   color: rgba(0, 0, 0, 0.5);
+}
+
+/* Scroll Down Button */
+.scrollDownBtn {
+  position: absolute;
+  bottom: 5.5rem;
+  right: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4b5563;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.scrollDownBtn:hover {
+  background-color: #f3f4f6;
+  color: #111827;
 }
 
 /* media queries */
