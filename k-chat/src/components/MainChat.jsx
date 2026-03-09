@@ -6,6 +6,7 @@ import React, {
   useCallback,
 } from "react";
 import styles from "../styles/MainChat.module.css";
+import typingStyles from "../styles/typingIndicator.module.css";
 import {
   Send,
   PanelLeftOpen,
@@ -54,13 +55,24 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [isScrolling, setIsScrolling] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesContainerRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = (force = false) => {
+    if (!messagesContainerRef.current) return;
+
+    const container = messagesContainerRef.current;
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      150;
+
+    if (force || isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleScroll = useCallback(() => {
@@ -144,6 +156,9 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
           message.receiverId === selectedUser._id)
       ) {
         setMessages((prev) => [...prev, message]);
+        if (message.senderId === selectedUser._id) {
+          setIsTyping(false);
+        }
       }
     };
 
@@ -158,12 +173,28 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       }
     };
 
+    const handleTypingEvent = ({ senderId }) => {
+      if (selectedUser && senderId === selectedUser._id) {
+        setIsTyping(true);
+      }
+    };
+
+    const handleStopTypingEvent = ({ senderId }) => {
+      if (selectedUser && senderId === selectedUser._id) {
+        setIsTyping(false);
+      }
+    };
+
     socket.on("receiveMessage", handleReceiveMessage);
     socket.on("messageDeleted", handleMessageDeleted);
+    socket.on("typing", handleTypingEvent);
+    socket.on("stopTyping", handleStopTypingEvent);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("messageDeleted", handleMessageDeleted);
+      socket.off("typing", handleTypingEvent);
+      socket.off("stopTyping", handleStopTypingEvent);
     };
   }, [socket, selectedUser, replyingTo]);
 
@@ -177,6 +208,29 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [newMessage]);
+
+  useEffect(() => {
+    setIsTyping(false);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+  }, [selectedUser]);
+
+  const handleTypingChange = (e) => {
+    setNewMessage(e.target.value);
+
+    if (socket && selectedUser) {
+      const userId = user.id || user._id;
+      socket.emit("typing", { senderId: userId, receiverId: selectedUser._id });
+
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+      typingTimeoutRef.current = setTimeout(() => {
+        socket.emit("stopTyping", {
+          senderId: userId,
+          receiverId: selectedUser._id,
+        });
+      }, 2000);
+    }
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -201,6 +255,13 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
     const fakeId = Date.now().toString();
 
+    // Clear typing timeout and emit stopTyping manually
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    socket.emit("stopTyping", {
+      senderId: userId,
+      receiverId: selectedUser._id,
+    });
+
     // Optimistic update
     setMessages((prev) => [
       ...prev,
@@ -216,6 +277,9 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
           : null,
       },
     ]);
+
+    // Force scroll to bottom when the current user explicitly sends a message
+    setTimeout(() => scrollToBottom(true), 50);
 
     socket.emit("sendMessage", messageData, (savedMessage) => {
       if (savedMessage && !savedMessage.error) {
@@ -270,6 +334,16 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
       <div className={styles.chatHeader}>
         <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
+        {isTyping && (
+          <div
+            className={`${typingStyles.typingIndicator} ${typingStyles.headerPosition}`}
+            title="Typing..."
+          >
+            <span className={typingStyles.dot}></span>
+            <span className={typingStyles.dot}></span>
+            <span className={typingStyles.dot}></span>
+          </div>
+        )}
       </div>
 
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
@@ -398,6 +472,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             </React.Fragment>
           );
         })}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -442,7 +517,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             className={styles.input}
             placeholder="Type a message..."
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleTypingChange}
             onKeyDown={handleKeyDown}
             rows={1}
             maxLength={2000}

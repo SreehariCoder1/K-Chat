@@ -133,6 +133,7 @@
   padding: 0.2em 0.4em;
   gap: 0.9em;
   cursor: pointer;
+  position: relative;
 }
 
 .maleBg {

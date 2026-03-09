@@ -121,6 +121,20 @@ io.on("connection", (socket) => {
     },
   );
 
+  socket.on("typing", ({ senderId, receiverId }) => {
+    const receiverSocketId = userSocketMap.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("typing", { senderId });
+    }
+  });
+
+  socket.on("stopTyping", ({ senderId, receiverId }) => {
+    const receiverSocketId = userSocketMap.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("stopTyping", { senderId });
+    }
+  });
+
   socket.on("deleteMessage", async ({ messageId }) => {
     try {
       const message = await MessageRepository.getMessageById(messageId);

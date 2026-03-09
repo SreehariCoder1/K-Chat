@@ -1,5 +1,6 @@
-import { useContext } from "react";
+import { useContext, useState, useEffect } from "react";
 import styles from "../styles/Sidebar.module.css";
+import typingStyles from "../styles/typingIndicator.module.css";
 import {
   User,
   Filter,
@@ -18,10 +19,36 @@ import { SocketContext } from "../context/SocketContext";
 
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout } = useContext(AuthContext);
-  const { onlineUsers = [] } = useContext(SocketContext);
+  const { onlineUsers = [], socket } = useContext(SocketContext);
+  const [typingUsers, setTypingUsers] = useState(new Set());
+
   const otherOnlineUsers = onlineUsers.filter(
     (u) => u._id !== user?.id && u._id !== user?._id,
   );
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleTyping = ({ senderId }) => {
+      setTypingUsers((prev) => new Set(prev).add(senderId));
+    };
+
+    const handleStopTyping = ({ senderId }) => {
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(senderId);
+        return next;
+      });
+    };
+
+    socket.on("typing", handleTyping);
+    socket.on("stopTyping", handleStopTyping);
+
+    return () => {
+      socket.off("typing", handleTyping);
+      socket.off("stopTyping", handleStopTyping);
+    };
+  }, [socket]);
   return (
     <div className={`${styles.sidebar} ${isOpen ? "" : styles.sidebarClosed}`}>
       <div className={styles.header}>
@@ -97,6 +124,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                     : UserIcon;
 
               const isSelected = selectedUser?._id === u._id;
+              const isTyping = typingUsers.has(u._id);
 
               return (
                 <div
@@ -114,6 +142,16 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                       : "2px solid transparent",
                   }}
                 >
+                  {isTyping && (
+                    <div
+                      className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
+                      title="Typing..."
+                    >
+                      <span className={typingStyles.dot}></span>
+                      <span className={typingStyles.dot}></span>
+                      <span className={typingStyles.dot}></span>
+                    </div>
+                  )}
                   <div className={styles.userIconWrapper}>
                     <AvatarIcon
                       className={styles.userIconSolid}
