@@ -5,6 +5,8 @@
   height: 100vh;
   background-color: #f4f5f8;
   position: relative;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .openSidebarBtn {
@@ -365,6 +367,8 @@
   border: 1px solid #e5e7eb;
   border-bottom: none;
   width: 99%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .replyPreviewText {
@@ -373,6 +377,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .cancelIcon {
