@@ -65,7 +65,11 @@ io.on("connection", (socket) => {
         if (user) {
           onlineUsers.set(socket.id, user);
           userSocketMap.set(userId, socket.id);
-          io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
+          const allUsers = Array.from(onlineUsers.values());
+          const uniqueUsers = Array.from(
+            new Map(allUsers.map((u) => [u._id.toString(), u])).values(),
+          );
+          io.emit("getOnlineUsers", uniqueUsers);
         }
       }
     } catch (err) {
@@ -185,7 +189,11 @@ io.on("connection", (socket) => {
       userSocketMap.delete(user._id.toString());
     }
     onlineUsers.delete(socket.id);
-    io.emit("getOnlineUsers", Array.from(onlineUsers.values()));
+    const allUsers = Array.from(onlineUsers.values());
+    const uniqueUsers = Array.from(
+      new Map(allUsers.map((u) => [u._id.toString(), u])).values(),
+    );
+    io.emit("getOnlineUsers", uniqueUsers);
   });
 });
 
