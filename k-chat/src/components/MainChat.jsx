@@ -484,7 +484,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
           }
           title="Scroll to bottom"
         >
-          <ChevronDown size={20} />
+          <ChevronDown className={styles.scrollDownIcon} size={20} />
         </button>
       )}
 

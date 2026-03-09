@@ -464,6 +464,11 @@
   color: #111827;
 }
 
+.scrollDownIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 /* media queries */
 @media (min-width: 500px) and (max-width: 768px) {
   .input {
