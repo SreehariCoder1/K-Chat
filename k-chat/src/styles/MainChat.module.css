@@ -95,6 +95,18 @@
   justify-content: center;
   color: white;
   margin-left: 0.7em;
+  transition: all 0.2s ease;
+}
+
+.sendBtn:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.sendBtn:not(:disabled):hover {
+  background-color: #27704e;
 }
 
 .sendIcon {
