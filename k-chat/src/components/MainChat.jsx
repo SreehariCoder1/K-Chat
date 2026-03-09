@@ -354,124 +354,157 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             <span className={styles.floatingDate}>{floatingDate}</span>
           </div>
         )}
-        {messages.map((m, index) => {
-          const userId = user.id || user._id;
-          const isSender = m.senderId === userId;
+        {(() => {
+          let currentGroupStartTime = null;
+          let currentGroupSenderId = null;
 
-          const messageDateLabel = formatDateLabel(m.createdAt);
-          const prevMessageDateLabel =
-            index > 0 ? formatDateLabel(messages[index - 1].createdAt) : null;
-          const showDateSeparator = messageDateLabel !== prevMessageDateLabel;
+          return messages.map((m, index) => {
+            const userId = user.id || user._id;
+            const isSender = m.senderId === userId;
 
-          const messageTime = formatTime(m.createdAt);
+            const messageDateLabel = formatDateLabel(m.createdAt);
+            const prevMessageDateLabel =
+              index > 0 ? formatDateLabel(messages[index - 1].createdAt) : null;
+            const showDateSeparator = messageDateLabel !== prevMessageDateLabel;
 
-          // Check if message is less than 15 mins old
-          const isUnder15Mins =
-            (new Date() - new Date(m.createdAt)) / 60000 <= 15;
-          const canDelete = isSender && isUnder15Mins && !m.isDeleted;
+            const msgTime = new Date(m.createdAt).getTime();
 
-          return (
-            <React.Fragment key={m._id || index}>
-              {showDateSeparator && (
+            // Sender Grouping Logic (Consecutive Messages within 5 minutes of the FIRST message in the group)
+            let isGrouped = false;
+
+            if (
+              !showDateSeparator &&
+              currentGroupSenderId === m.senderId &&
+              currentGroupStartTime &&
+              msgTime - currentGroupStartTime < 5 * 60 * 1000
+            ) {
+              isGrouped = true;
+            } else {
+              // Start a new group
+              isGrouped = false;
+              currentGroupSenderId = m.senderId;
+              currentGroupStartTime = msgTime;
+            }
+
+            const messageTime = formatTime(m.createdAt);
+
+            // Check if message is less than 15 mins old
+            const isUnder15Mins =
+              (new Date() - new Date(m.createdAt)) / 60000 <= 15;
+            const canDelete = isSender && isUnder15Mins && !m.isDeleted;
+
+            return (
+              <React.Fragment key={m._id || index}>
+                {showDateSeparator && (
+                  <div
+                    className={styles.dateSeparatorWrapper}
+                    data-date={messageDateLabel}
+                  >
+                    <span className={styles.dateSeparator}>
+                      {messageDateLabel}
+                    </span>
+                  </div>
+                )}
                 <div
-                  className={styles.dateSeparatorWrapper}
-                  data-date={messageDateLabel}
-                >
-                  <span className={styles.dateSeparator}>
-                    {messageDateLabel}
-                  </span>
-                </div>
-              )}
-              <div id={`msg-${m._id}`} className={styles.messageWrapper}>
-                <div
-                  className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
+                  id={`msg-${m._id}`}
+                  className={`${styles.messageWrapper} ${isGrouped ? styles.groupedMessageWrapper : ""}`}
                 >
                   <div
-                    className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                    className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
                   >
-                    {m.isDeleted ? (
-                      <span className={styles.deletedText}>{m.message}</span>
-                    ) : (
-                      <>
-                        {/* Reply Action Button - Top Right */}
-                        <button
-                          className={styles.replyBtn}
-                          onClick={() => setReplyingTo(m)}
-                          title="Reply"
-                        >
-                          <Reply className={styles.replyIcon} size={12} />
-                        </button>
-
-                        {/* Delete Action Button */}
-                        {canDelete && (
+                    <div
+                      className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                    >
+                      {m.isDeleted ? (
+                        <span className={styles.deletedText}>{m.message}</span>
+                      ) : (
+                        <>
+                          {/* Reply Action Button - Top Right */}
                           <button
-                            className={styles.deleteBtn}
-                            onClick={() => handleDeleteMessage(m._id)}
-                            title="Delete message"
+                            className={styles.replyBtn}
+                            onClick={() => setReplyingTo(m)}
+                            title="Reply"
                           >
-                            <Trash className={styles.deleteIcon} size={12} />
+                            <Reply className={styles.replyIcon} size={12} />
                           </button>
-                        )}
 
-                        {/* Replied Snippet */}
-                        {m.replyTo && typeof m.replyTo === "object" && (
-                          <div
-                            className={styles.repliedSnippet}
-                            onClick={() => {
-                              if (m.replyTo._id) {
-                                const el = document.getElementById(
-                                  `msg-${m.replyTo._id}`,
-                                );
-                                if (el) {
-                                  el.scrollIntoView({
-                                    behavior: "auto",
-                                    block: "center",
-                                  });
-                                  // Remove class if it's already there to re-trigger animation
-                                  el.classList.remove(
-                                    styles.highlightedMessage,
+                          {/* Delete Action Button */}
+                          {canDelete && (
+                            <button
+                              className={styles.deleteBtn}
+                              onClick={() => handleDeleteMessage(m._id)}
+                              title="Delete message"
+                            >
+                              <Trash className={styles.deleteIcon} size={12} />
+                            </button>
+                          )}
+
+                          {/* Replied Snippet */}
+                          {m.replyTo && typeof m.replyTo === "object" && (
+                            <div
+                              className={styles.repliedSnippet}
+                              onClick={() => {
+                                if (m.replyTo._id) {
+                                  const el = document.getElementById(
+                                    `msg-${m.replyTo._id}`,
                                   );
-                                  // small delay to force reflow and restart animation
-                                  setTimeout(() => {
-                                    el.classList.add(styles.highlightedMessage);
+                                  if (el) {
+                                    el.scrollIntoView({
+                                      behavior: "auto",
+                                      block: "center",
+                                    });
+                                    // Remove class if it's already there to re-trigger animation
+                                    el.classList.remove(
+                                      styles.highlightedMessage,
+                                    );
+                                    // small delay to force reflow and restart animation
                                     setTimeout(() => {
-                                      el.classList.remove(
+                                      el.classList.add(
                                         styles.highlightedMessage,
                                       );
-                                    }, 2000); // match css duration
-                                  }, 10);
+                                      setTimeout(() => {
+                                        el.classList.remove(
+                                          styles.highlightedMessage,
+                                        );
+                                      }, 2000); // match css duration
+                                    }, 10);
+                                  }
                                 }
-                              }
-                            }}
-                          >
-                            <span className={styles.repliedSender}>
-                              {m.replyTo.senderId === userId
-                                ? "You"
-                                : selectedUser.username}
-                            </span>
-                            {renderMessageWithLinks(m.replyTo.message)}
-                          </div>
-                        )}
+                              }}
+                            >
+                              <span className={styles.repliedSender}>
+                                {m.replyTo.senderId === userId
+                                  ? "You"
+                                  : selectedUser.username}
+                              </span>
+                              {renderMessageWithLinks(m.replyTo.message)}
+                            </div>
+                          )}
 
-                        <span className={styles.messageText}>
-                          {renderMessageWithLinks(m.message)}
-                        </span>
-                      </>
-                    )}
+                          <span className={styles.messageText}>
+                            {renderMessageWithLinks(m.message)}
+                          </span>
+                        </>
+                      )}
 
-                    {/* Tail for receiver (left side) */}
-                    {!isSender && <div className={styles.tailReceiver} />}
+                      {/* Tail for receiver (left side) */}
+                      {!isSender && !isGrouped && (
+                        <div className={styles.tailReceiver} />
+                      )}
 
-                    {/* Tail for sender (right side) */}
-                    {isSender && <div className={styles.tailSender} />}
+                      {/* Tail for sender (right side) */}
+                      {isSender && !isGrouped && (
+                        <div className={styles.tailSender} />
+                      )}
 
-                    <span className={styles.messageTime}>{messageTime}</span>
+                      <span className={styles.messageTime}>{messageTime}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </React.Fragment>
-          );
-        })}
+              </React.Fragment>
+            );
+          });
+        })()}
 
         <div ref={messagesEndRef} />
       </div>
