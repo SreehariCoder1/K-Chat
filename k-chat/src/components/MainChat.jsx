@@ -491,15 +491,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       {/* Reply Preview Banner */}
       {replyingTo && (
         <div className={styles.replyPreviewContainer}>
-          <div className={styles.replyPreviewText}>
-            <strong>
-              {replyingTo.senderId === (user.id || user._id)
-                ? "Replying to yourself"
-                : `Replying to ${selectedUser.username}`}
-              :
-            </strong>{" "}
-            {replyingTo.message}
-          </div>
+          <div className={styles.replyPreviewText}>{replyingTo.message}</div>
           <button
             type="button"
             className={styles.cancelReplyBtn}
