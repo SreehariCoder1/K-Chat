@@ -18,13 +18,29 @@ import {
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
+import MessageSearch from "./MessageSearch";
 
 import { formatDateLabel, formatTime } from "../utils/dateUtils";
 
-const renderMessageWithLinks = (text) => {
+const renderMessageWithLinks = (text, searchQuery = "") => {
   if (!text) return text;
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
   const parts = text.split(urlRegex);
+
+  const renderHighlightedPart = (pt, idx) => {
+    if (!searchQuery.trim()) return pt;
+    const regex = new RegExp(`(${searchQuery})`, "gi");
+    const subParts = pt.split(regex);
+    return subParts.map((sp, i) =>
+      sp.toLowerCase() === searchQuery.toLowerCase() ? (
+        <span key={`${idx}-${i}`} className={styles.highlightedText}>
+          {sp}
+        </span>
+      ) : (
+        sp
+      ),
+    );
+  };
 
   return parts.map((part, index) => {
     if (part.match(urlRegex)) {
@@ -42,7 +58,7 @@ const renderMessageWithLinks = (text) => {
         </a>
       );
     }
-    return part;
+    return renderHighlightedPart(part, index);
   });
 };
 
@@ -56,6 +72,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [replyingTo, setReplyingTo] = useState(null);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
@@ -202,6 +219,21 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     scrollToBottom();
   }, [messages]);
 
+  const scrollToSearchResult = useCallback((targetId) => {
+    const el = document.getElementById(`msg-${targetId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.remove(styles.searchTargetFlash);
+      // Wait a tiny bit and apply the flash
+      setTimeout(() => {
+        el.classList.add(styles.searchTargetFlash);
+        setTimeout(() => {
+          el.classList.remove(styles.searchTargetFlash);
+        }, 2000);
+      }, 10);
+    }
+  }, []);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -334,16 +366,26 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
       <div className={styles.chatHeader}>
         <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
-        {isTyping && (
-          <div
-            className={`${typingStyles.typingIndicator} ${typingStyles.headerPosition}`}
-            title="Typing..."
-          >
-            <span className={typingStyles.dot}></span>
-            <span className={typingStyles.dot}></span>
-            <span className={typingStyles.dot}></span>
-          </div>
-        )}
+
+        <div className={styles.headerRightControls}>
+          <MessageSearch
+            messages={messages}
+            searchQuery={searchQuery}
+            onQueryChange={setSearchQuery}
+            onScrollTo={scrollToSearchResult}
+          />
+
+          {isTyping && (
+            <div
+              className={`${typingStyles.typingIndicator} ${typingStyles.headerPosition}`}
+              title="Typing..."
+            >
+              <span className={typingStyles.dot}></span>
+              <span className={typingStyles.dot}></span>
+              <span className={typingStyles.dot}></span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
@@ -477,12 +519,15 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                                   ? "You"
                                   : selectedUser.username}
                               </span>
-                              {renderMessageWithLinks(m.replyTo.message)}
+                              {renderMessageWithLinks(
+                                m.replyTo.message,
+                                searchQuery,
+                              )}
                             </div>
                           )}
 
                           <span className={styles.messageText}>
-                            {renderMessageWithLinks(m.message)}
+                            {renderMessageWithLinks(m.message, searchQuery)}
                           </span>
                         </>
                       )}

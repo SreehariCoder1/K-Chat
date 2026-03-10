@@ -485,6 +485,36 @@
   height: 1.5rem;
 }
 
+/* Search UI */
+.headerRightControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.highlightedText {
+  background-color: rgba(255, 235, 59, 1);
+  border-radius: 0.4em;
+  color: #000;
+  font-weight: 500;
+}
+
+.searchTargetFlash {
+  animation: searchFlash 2s ease-out forwards;
+}
+
+@keyframes searchFlash {
+  0% {
+    background-color: rgba(59, 130, 246, 0.4);
+  }
+  15% {
+    background-color: rgba(59, 130, 246, 0.6);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 /* media queries */
 @media (min-width: 500px) and (max-width: 768px) {
   .input {
