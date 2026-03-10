@@ -19,8 +19,8 @@ import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 import MessageSearch from "./MessageSearch";
-
 import { formatDateLabel, formatTime } from "../utils/dateUtils";
+import ParticleBackground from "./ParticleBackground";
 
 const renderMessageWithLinks = (text, searchQuery = "") => {
   if (!text) return text;
@@ -333,6 +333,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   if (!selectedUser) {
     return (
       <div className={styles.mainChat}>
+        <ParticleBackground />
         {!isOpen && (
           <button
             className={styles.openSidebarBtn}
@@ -354,6 +355,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
   return (
     <div className={styles.mainChat}>
+      <ParticleBackground />
       {!isOpen && (
         <button
           className={styles.openSidebarBtn}
