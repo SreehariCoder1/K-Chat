@@ -1,21 +1,21 @@
+import "dotenv/config.js"; // Populates process.env before other imports
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import stickerRoutes from "./routes/stickerRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
 import User from "./models/User.js";
 import MessageRepository from "./repositories/MessageRepository.js";
 
-dotenv.config();
-
 const app = express();
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
@@ -32,6 +32,7 @@ app.use(
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/stickers", stickerRoutes);
 
 // Database connection
 const PORT = process.env.PORT || 5000;
@@ -79,14 +80,17 @@ io.on("connection", (socket) => {
 
   socket.on(
     "sendMessage",
-    async ({ senderId, receiverId, message, replyTo }, callback) => {
+    async (
+      { senderId, receiverId, message, type, stickerUrl, replyTo },
+      callback,
+    ) => {
       try {
-        if (!message || message.trim().length === 0) {
+        if (type !== "sticker" && (!message || message.trim().length === 0)) {
           if (typeof callback === "function")
             callback({ error: "Message cannot be empty." });
           return;
         }
-        if (message.length > 2000) {
+        if (message && message.length > 2000) {
           if (typeof callback === "function")
             callback({ error: "Message exceeds 2000 characters limit." });
           return;
@@ -96,14 +100,16 @@ io.on("connection", (socket) => {
         let savedMessage = await MessageRepository.saveMessage({
           senderId,
           receiverId,
-          message,
+          message: type === "sticker" ? "" : message,
+          type: type || "text",
+          stickerUrl,
           replyTo,
         });
 
         // Populate replyTo for realtime receiver update
         savedMessage = await savedMessage.populate(
           "replyTo",
-          "message senderId",
+          "message senderId type stickerUrl",
         );
 
         // Real-time emit to receiver if online

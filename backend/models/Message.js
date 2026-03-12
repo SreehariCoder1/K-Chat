@@ -14,8 +14,18 @@ const messageSchema = new mongoose.Schema(
     },
     message: {
       type: String,
-      required: true,
+      required: function () {
+        return this.type === "text";
+      },
       maxlength: 2000,
+    },
+    type: {
+      type: String,
+      enum: ["text", "sticker"],
+      default: "text",
+    },
+    stickerUrl: {
+      type: String,
     },
     replyTo: {
       type: mongoose.Schema.Types.ObjectId,

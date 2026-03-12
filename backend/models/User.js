@@ -44,6 +44,18 @@ const userSchema = new mongoose.Schema(
     verificationTokenExpiresAt: Date,
     resetPasswordToken: String,
     resetPasswordExpiresAt: Date,
+    favoriteStickers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Sticker",
+      },
+    ],
+    recentStickers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Sticker",
+      },
+    ],
   },
   { timestamps: true },
 );

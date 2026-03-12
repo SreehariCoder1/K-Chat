@@ -13,7 +13,7 @@ class MessageRepository {
         { senderId: userId2, receiverId: userId1 },
       ],
     })
-      .populate("replyTo", "message senderId")
+      .populate("replyTo", "message senderId type stickerUrl")
       .sort({ createdAt: 1 }); // Chronological order
   }
 

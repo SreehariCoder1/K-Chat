@@ -14,6 +14,7 @@ import {
   X,
   Trash,
   ChevronDown,
+  Sticker,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -21,6 +22,7 @@ import { SocketContext } from "../context/SocketContext";
 import MessageSearch from "./MessageSearch";
 import { formatDateLabel, formatTime } from "../utils/dateUtils";
 import ParticleBackground from "./ParticleBackground";
+import StickerPicker from "./StickerPicker";
 
 const renderMessageWithLinks = (text, searchQuery = "") => {
   if (!text) return text;
@@ -73,11 +75,13 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showStickerPicker, setShowStickerPicker] = useState(false);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const newUserLoadRef = useRef(false);
 
   const scrollToBottom = (force = false) => {
     if (!messagesContainerRef.current) return;
@@ -151,6 +155,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
   useEffect(() => {
     if (selectedUser) {
+      newUserLoadRef.current = true;
       const fetchMessages = async () => {
         try {
           const res = await axios.get(`/messages/${selectedUser._id}`);
@@ -216,7 +221,12 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   }, [socket, selectedUser, replyingTo]);
 
   useEffect(() => {
-    scrollToBottom();
+    if (newUserLoadRef.current) {
+      newUserLoadRef.current = false;
+      messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+    } else {
+      scrollToBottom();
+    }
   }, [messages]);
 
   const scrollToSearchResult = useCallback((targetId) => {
@@ -305,6 +315,8 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
               _id: replyingTo._id,
               message: replyingTo.message,
               senderId: replyingTo.senderId,
+              type: replyingTo.type,
+              stickerUrl: replyingTo.stickerUrl,
             }
           : null,
       },
@@ -321,6 +333,60 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       }
     });
     setNewMessage("");
+    setReplyingTo(null);
+  };
+
+  const handleSendSticker = (sticker) => {
+    if (!selectedUser) return;
+
+    const userId = user.id || user._id;
+
+    const messageData = {
+      senderId: userId,
+      receiverId: selectedUser._id,
+      message: "", // empty for stickers
+      type: "sticker",
+      stickerUrl: sticker.url,
+      replyTo: replyingTo ? replyingTo._id : null,
+      createdAt: new Date().toISOString(),
+    };
+
+    const fakeId = Date.now().toString();
+
+    // Clear typing timeout and emit stopTyping manually
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    socket.emit("stopTyping", {
+      senderId: userId,
+      receiverId: selectedUser._id,
+    });
+
+    // Optimistic update
+    setMessages((prev) => [
+      ...prev,
+      {
+        ...messageData,
+        _id: fakeId,
+        replyTo: replyingTo
+          ? {
+              _id: replyingTo._id,
+              message: replyingTo.message,
+              senderId: replyingTo.senderId,
+            }
+          : null,
+      },
+    ]);
+
+    setTimeout(() => scrollToBottom(true), 50);
+
+    socket.emit("sendMessage", messageData, (savedMessage) => {
+      if (savedMessage && !savedMessage.error) {
+        setMessages((prev) =>
+          prev.map((m) => (m._id === fakeId ? savedMessage : m)),
+        );
+      }
+    });
+
+    setShowStickerPicker(false);
     setReplyingTo(null);
   };
 
@@ -457,7 +523,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                     className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
                   >
                     <div
-                      className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver}`}
+                      className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver} ${m.type === "sticker" ? styles.stickerBubble : ""}`}
                     >
                       {m.isDeleted ? (
                         <span className={styles.deletedText}>{m.message}</span>
@@ -521,30 +587,59 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
                                   ? "You"
                                   : selectedUser.username}
                               </span>
-                              {renderMessageWithLinks(
-                                m.replyTo.message,
-                                searchQuery,
+                              {m.replyTo.type === "sticker" ? (
+                                <div className={styles.repliedSticker}>
+                                  <span className={styles.repliedStickerText}>
+                                    Sticker
+                                  </span>
+                                  <img
+                                    src={m.replyTo.stickerUrl}
+                                    alt="sticker"
+                                    className={styles.repliedStickerImg}
+                                  />
+                                </div>
+                              ) : (
+                                renderMessageWithLinks(
+                                  m.replyTo.message,
+                                  searchQuery,
+                                )
                               )}
                             </div>
                           )}
 
-                          <span className={styles.messageText}>
-                            {renderMessageWithLinks(m.message, searchQuery)}
-                          </span>
+                          {m.type === "sticker" ? (
+                            <img
+                              src={m.stickerUrl}
+                              alt="sticker"
+                              className={styles.renderedSticker}
+                            />
+                          ) : (
+                            <span className={styles.messageText}>
+                              {renderMessageWithLinks(m.message, searchQuery)}
+                            </span>
+                          )}
                         </>
                       )}
 
                       {/* Tail for receiver (left side) */}
-                      {!isSender && !isGrouped && (
+                      {!isSender && !isGrouped && m.type !== "sticker" && (
                         <div className={styles.tailReceiver} />
                       )}
 
                       {/* Tail for sender (right side) */}
-                      {isSender && !isGrouped && (
+                      {isSender && !isGrouped && m.type !== "sticker" && (
                         <div className={styles.tailSender} />
                       )}
 
-                      <span className={styles.messageTime}>{messageTime}</span>
+                      <span
+                        className={
+                          m.type === "sticker"
+                            ? styles.messageTimeSticker
+                            : styles.messageTime
+                        }
+                      >
+                        {messageTime}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -568,41 +663,71 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         </button>
       )}
 
-      {/* Reply Preview Banner */}
-      {replyingTo && (
-        <div className={styles.replyPreviewContainer}>
-          <div className={styles.replyPreviewText}>{replyingTo.message}</div>
-          <button
-            type="button"
-            className={styles.cancelReplyBtn}
-            onClick={() => setReplyingTo(null)}
-          >
-            <X className={styles.cancelIcon} size={16} />
-          </button>
-        </div>
-      )}
-
-      <form className={styles.inputArea} onSubmit={handleSendMessage}>
-        <div className={styles.inputWrapper}>
-          <textarea
-            ref={textareaRef}
-            className={styles.input}
-            placeholder="Type a message..."
-            value={newMessage}
-            onChange={handleTypingChange}
-            onKeyDown={handleKeyDown}
-            rows={1}
-            maxLength={2000}
+      <div className={styles.inputSection}>
+        {showStickerPicker && (
+          <StickerPicker
+            onClose={() => setShowStickerPicker(false)}
+            onSendSticker={handleSendSticker}
           />
-        </div>
-        <button
-          type="submit"
-          className={styles.sendBtn}
-          disabled={!newMessage.trim()}
-        >
-          <Send className={styles.sendIcon} size={20} />
-        </button>
-      </form>
+        )}
+
+        {/* Reply Preview Banner */}
+        {replyingTo && (
+          <div className={styles.replyPreviewContainer}>
+            <div className={styles.replyPreviewText}>
+              {replyingTo.type === "sticker" ? (
+                <div className={styles.replyPreviewSticker}>
+                  <span>Sticker</span>
+                  <img
+                    src={replyingTo.stickerUrl}
+                    alt="sticker preview"
+                    className={styles.replyPreviewStickerImg}
+                  />
+                </div>
+              ) : (
+                replyingTo.message
+              )}
+            </div>
+            <button
+              type="button"
+              className={styles.cancelReplyBtn}
+              onClick={() => setReplyingTo(null)}
+            >
+              <X className={styles.cancelIcon} size={16} />
+            </button>
+          </div>
+        )}
+
+        <form className={styles.inputArea} onSubmit={handleSendMessage}>
+          <div className={styles.inputWrapper}>
+            <button
+              type="button"
+              className={`${styles.stickerToggleBtn} ${showStickerPicker ? styles.stickerToggleBtnActive : ""}`}
+              onClick={() => setShowStickerPicker(!showStickerPicker)}
+              title="Sticker"
+            >
+              <Sticker className={styles.stickerIcon} size={20} />
+            </button>
+            <textarea
+              ref={textareaRef}
+              className={styles.input}
+              placeholder="Type a message..."
+              value={newMessage}
+              onChange={handleTypingChange}
+              onKeyDown={handleKeyDown}
+              rows={1}
+              maxLength={2000}
+            />
+          </div>
+          <button
+            type="submit"
+            className={styles.sendBtn}
+            disabled={!newMessage.trim()}
+          >
+            <Send className={styles.sendIcon} size={20} />
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
