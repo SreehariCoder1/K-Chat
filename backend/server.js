@@ -145,6 +145,18 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ── Effects Feature ────────────────────────────────────────────────────
+  // Emits to both the receiver AND echoes back to the sender so both
+  // chatting users see the animation at the same time.
+  socket.on("playEffect", ({ senderId, receiverId, effectType }) => {
+    const receiverSocketId = userSocketMap.get(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("playEffect", { senderId, effectType });
+    }
+    // Echo back to sender so they also see the animation
+    socket.emit("playEffect", { senderId, effectType });
+  });
+
   socket.on("deleteMessage", async ({ messageId }) => {
     try {
       const message = await MessageRepository.getMessageById(messageId);

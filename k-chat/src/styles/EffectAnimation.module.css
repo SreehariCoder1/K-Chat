@@ -1,0 +1,44 @@
+/* ── Base overlay (shared) ────────────────────────────── */
+.overlay {
+  width: 100%;
+  height: 40%;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: auto;
+  cursor: pointer;
+  animation: popIn 0.2s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+/* ── Sender: sits just above the input section ─────────── */
+.overlaySender {
+  bottom: 13%;
+}
+
+/* ── Receiver: sits top of window ─────────── */
+.overlayReceiver {
+  top: 0;
+}
+
+/* media queries */
+@media screen and (max-width: 768px) {
+  .overlaySender {
+    bottom: 12%;
+  }
+}

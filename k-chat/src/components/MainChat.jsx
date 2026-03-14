@@ -4,6 +4,7 @@ import React, {
   useContext,
   useRef,
   useCallback,
+  useMemo,
 } from "react";
 import styles from "../styles/MainChat.module.css";
 import typingStyles from "../styles/typingIndicator.module.css";
@@ -15,6 +16,7 @@ import {
   Trash,
   ChevronDown,
   Sticker,
+  Sparkles,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -23,6 +25,7 @@ import MessageSearch from "./MessageSearch";
 import { formatDateLabel, formatTime } from "../utils/dateUtils";
 import ParticleBackground from "./ParticleBackground";
 import StickerPicker from "./StickerPicker";
+import EffectAnimation from "./EffectAnimation";
 
 const renderMessageWithLinks = (text, searchQuery = "") => {
   if (!text) return text;
@@ -64,6 +67,19 @@ const renderMessageWithLinks = (text, searchQuery = "") => {
   });
 };
 
+const EFFECTS_CONFIG = [
+  { id: "EFFECT1", icon: "🔫", label: "Money Gun" },
+  { id: "EFFECT2", icon: "🛸", label: "UFO Abduction" },
+  { id: "EFFECT3", icon: "🤯", label: "Mind Blown" },
+  { id: "EFFECT4", icon: "🚀", label: "Rocket" },
+  { id: "EFFECT5", icon: "⚔️", label: "Fight" },
+  { id: "EFFECT6", icon: "🐊", label: "Crocodile" },
+  { id: "EFFECT7", icon: "😮", label: "Wow" },
+  { id: "EFFECT8", icon: "⚡", label: "Lightning" },
+  { id: "EFFECT9", icon: "🚗", label: "Car" },
+  { id: "EFFECT10", icon: "💣", label: "Bomb" },
+];
+
 const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -76,12 +92,41 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showStickerPicker, setShowStickerPicker] = useState(false);
+  const [showEffectsPicker, setShowEffectsPicker] = useState(false);
+  const [senderEffectType, setSenderEffectType] = useState(null);
+  const [receiverEffectType, setReceiverEffectType] = useState(null);
+  const [isMobile, setIsMobile] = useState(
+    () => window.matchMedia("(max-width: 501px)").matches,
+  );
+  const [prevUserId, setPrevUserId] = useState(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const scrollTimeoutRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const newUserLoadRef = useRef(false);
+
+  // Adjust state during render
+  if (selectedUser?._id !== prevUserId) {
+    setPrevUserId(selectedUser?._id);
+    setIsTyping(false);
+  }
+
+  // Track mobile breakpoint so effects don't play when main chat is hidden
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 501px)");
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const isChatVisible = !isMobile || !isOpen;
+
+  // Track visibility in a ref so socket handlers can access current state without stale closures
+  const isChatVisibleRef = useRef(isChatVisible);
+  useEffect(() => {
+    isChatVisibleRef.current = isChatVisible;
+  }, [isChatVisible]);
 
   const scrollToBottom = (force = false) => {
     if (!messagesContainerRef.current) return;
@@ -207,18 +252,33 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       }
     };
 
+    const handlePlayEffectEvent = ({ senderId, effectType }) => {
+      // Only process the effect if the chat is currently visible to the user
+      if (!isChatVisibleRef.current) return;
+
+      const userId = user.id || user._id;
+      if (senderId === userId) {
+        setSenderEffectType(effectType);
+      } else if (selectedUser && senderId === selectedUser._id) {
+        // Only play received effects if the sender is the currently selected user
+        setReceiverEffectType(effectType);
+      }
+    };
+
     socket.on("receiveMessage", handleReceiveMessage);
     socket.on("messageDeleted", handleMessageDeleted);
     socket.on("typing", handleTypingEvent);
     socket.on("stopTyping", handleStopTypingEvent);
+    socket.on("playEffect", handlePlayEffectEvent);
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("messageDeleted", handleMessageDeleted);
       socket.off("typing", handleTypingEvent);
       socket.off("stopTyping", handleStopTypingEvent);
+      socket.off("playEffect", handlePlayEffectEvent);
     };
-  }, [socket, selectedUser, replyingTo]);
+  }, [socket, selectedUser, replyingTo, user]);
 
   useEffect(() => {
     if (newUserLoadRef.current) {
@@ -227,6 +287,47 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     } else {
       scrollToBottom();
     }
+  }, [messages]);
+
+  const processedMessages = useMemo(() => {
+    const results = [];
+    let currentGroupStartTime = null;
+    let currentGroupSenderId = null;
+
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i];
+      const messageDateLabel = formatDateLabel(m.createdAt);
+      const prevMessageDateLabel =
+        i > 0 ? formatDateLabel(messages[i - 1].createdAt) : null;
+      const showDateSeparator = messageDateLabel !== prevMessageDateLabel;
+
+      const msgTime = new Date(m.createdAt).getTime();
+
+      // Sender Grouping Logic (Consecutive Messages within 5 minutes of the FIRST message in the group)
+      let isGrouped = false;
+
+      if (
+        !showDateSeparator &&
+        currentGroupSenderId === m.senderId &&
+        currentGroupStartTime &&
+        msgTime - currentGroupStartTime < 5 * 60 * 1000
+      ) {
+        isGrouped = true;
+      } else {
+        // Start a new group
+        isGrouped = false;
+        currentGroupSenderId = m.senderId;
+        currentGroupStartTime = msgTime;
+      }
+
+      results.push({
+        ...m,
+        isGrouped,
+        showDateSeparator,
+        messageDateLabel,
+      });
+    }
+    return results;
   }, [messages]);
 
   const scrollToSearchResult = useCallback((targetId) => {
@@ -252,7 +353,6 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   }, [newMessage]);
 
   useEffect(() => {
-    setIsTyping(false);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   }, [selectedUser]);
 
@@ -272,6 +372,28 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         });
       }, 2000);
     }
+  };
+
+  const handleSenderEffectDone = useCallback(
+    () => setSenderEffectType(null),
+    [],
+  );
+  const handleReceiverEffectDone = useCallback(
+    () => setReceiverEffectType(null),
+    [],
+  );
+
+  const handleTriggerEffect = (effectType) => {
+    if (!selectedUser) return;
+    const userId = user.id || user._id;
+
+    const payload = {
+      senderId: userId,
+      receiverId: selectedUser._id,
+      effectType,
+    };
+    socket.emit("playEffect", payload);
+    setShowEffectsPicker(false);
   };
 
   const handleKeyDown = (e) => {
@@ -422,6 +544,20 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   return (
     <div className={styles.mainChat}>
       <ParticleBackground />
+      {isChatVisible && senderEffectType && (
+        <EffectAnimation
+          role="sender"
+          effect={senderEffectType}
+          onDone={handleSenderEffectDone}
+        />
+      )}
+      {isChatVisible && receiverEffectType && (
+        <EffectAnimation
+          role="receiver"
+          effect={receiverEffectType}
+          onDone={handleReceiverEffectDone}
+        />
+      )}
       {!isOpen && (
         <button
           className={styles.openSidebarBtn}
@@ -464,189 +600,159 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             <span className={styles.floatingDate}>{floatingDate}</span>
           </div>
         )}
-        {(() => {
-          let currentGroupStartTime = null;
-          let currentGroupSenderId = null;
+        {processedMessages.map((m, index) => {
+          const userId = user.id || user._id;
+          const isSender = m.senderId === userId;
+          const { isGrouped, showDateSeparator, messageDateLabel } = m;
 
-          return messages.map((m, index) => {
-            const userId = user.id || user._id;
-            const isSender = m.senderId === userId;
+          const messageTime = formatTime(m.createdAt);
 
-            const messageDateLabel = formatDateLabel(m.createdAt);
-            const prevMessageDateLabel =
-              index > 0 ? formatDateLabel(messages[index - 1].createdAt) : null;
-            const showDateSeparator = messageDateLabel !== prevMessageDateLabel;
+          // Check if message is less than 15 mins old
+          const isUnder15Mins =
+            (new Date() - new Date(m.createdAt)) / 60000 <= 15;
+          const canDelete = isSender && isUnder15Mins && !m.isDeleted;
 
-            const msgTime = new Date(m.createdAt).getTime();
-
-            // Sender Grouping Logic (Consecutive Messages within 5 minutes of the FIRST message in the group)
-            let isGrouped = false;
-
-            if (
-              !showDateSeparator &&
-              currentGroupSenderId === m.senderId &&
-              currentGroupStartTime &&
-              msgTime - currentGroupStartTime < 5 * 60 * 1000
-            ) {
-              isGrouped = true;
-            } else {
-              // Start a new group
-              isGrouped = false;
-              currentGroupSenderId = m.senderId;
-              currentGroupStartTime = msgTime;
-            }
-
-            const messageTime = formatTime(m.createdAt);
-
-            // Check if message is less than 15 mins old
-            const isUnder15Mins =
-              (new Date() - new Date(m.createdAt)) / 60000 <= 15;
-            const canDelete = isSender && isUnder15Mins && !m.isDeleted;
-
-            return (
-              <React.Fragment key={m._id || index}>
-                {showDateSeparator && (
-                  <div
-                    className={styles.dateSeparatorWrapper}
-                    data-date={messageDateLabel}
-                  >
-                    <span className={styles.dateSeparator}>
-                      {messageDateLabel}
-                    </span>
-                  </div>
-                )}
+          return (
+            <React.Fragment key={m._id || index}>
+              {showDateSeparator && (
                 <div
-                  id={`msg-${m._id}`}
-                  className={`${styles.messageWrapper} ${isGrouped ? styles.groupedMessageWrapper : ""}`}
+                  className={styles.dateSeparatorWrapper}
+                  data-date={messageDateLabel}
+                >
+                  <span className={styles.dateSeparator}>
+                    {messageDateLabel}
+                  </span>
+                </div>
+              )}
+              <div
+                id={`msg-${m._id}`}
+                className={`${styles.messageWrapper} ${isGrouped ? styles.groupedMessageWrapper : ""}`}
+              >
+                <div
+                  className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
                 >
                   <div
-                    className={`${styles.messageRow} ${isSender ? styles.messageRowSender : styles.messageRowReceiver}`}
+                    className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver} ${m.type === "sticker" ? styles.stickerBubble : ""}`}
                   >
-                    <div
-                      className={`${styles.messageBubble} ${isSender ? styles.bubbleSender : styles.bubbleReceiver} ${m.type === "sticker" ? styles.stickerBubble : ""}`}
-                    >
-                      {m.isDeleted ? (
-                        <span className={styles.deletedText}>{m.message}</span>
-                      ) : (
-                        <>
-                          {/* Reply Action Button - Top Right */}
+                    {m.isDeleted ? (
+                      <span className={styles.deletedText}>{m.message}</span>
+                    ) : (
+                      <>
+                        {/* Reply Action Button - Top Right */}
+                        <button
+                          className={styles.replyBtn}
+                          onClick={() => setReplyingTo(m)}
+                          title="Reply"
+                        >
+                          <Reply className={styles.replyIcon} size={12} />
+                        </button>
+
+                        {/* Delete Action Button */}
+                        {canDelete && (
                           <button
-                            className={styles.replyBtn}
-                            onClick={() => setReplyingTo(m)}
-                            title="Reply"
+                            className={styles.deleteBtn}
+                            onClick={() => handleDeleteMessage(m._id)}
+                            title="Delete message"
                           >
-                            <Reply className={styles.replyIcon} size={12} />
+                            <Trash className={styles.deleteIcon} size={12} />
                           </button>
+                        )}
 
-                          {/* Delete Action Button */}
-                          {canDelete && (
-                            <button
-                              className={styles.deleteBtn}
-                              onClick={() => handleDeleteMessage(m._id)}
-                              title="Delete message"
-                            >
-                              <Trash className={styles.deleteIcon} size={12} />
-                            </button>
-                          )}
-
-                          {/* Replied Snippet */}
-                          {m.replyTo && typeof m.replyTo === "object" && (
-                            <div
-                              className={styles.repliedSnippet}
-                              onClick={() => {
-                                if (m.replyTo._id) {
-                                  const el = document.getElementById(
-                                    `msg-${m.replyTo._id}`,
+                        {/* Replied Snippet */}
+                        {m.replyTo && typeof m.replyTo === "object" && (
+                          <div
+                            className={styles.repliedSnippet}
+                            onClick={() => {
+                              if (m.replyTo._id) {
+                                const el = document.getElementById(
+                                  `msg-${m.replyTo._id}`,
+                                );
+                                if (el) {
+                                  el.scrollIntoView({
+                                    behavior: "auto",
+                                    block: "center",
+                                  });
+                                  // Remove class if it's already there to re-trigger animation
+                                  el.classList.remove(
+                                    styles.highlightedMessage,
                                   );
-                                  if (el) {
-                                    el.scrollIntoView({
-                                      behavior: "auto",
-                                      block: "center",
-                                    });
-                                    // Remove class if it's already there to re-trigger animation
-                                    el.classList.remove(
-                                      styles.highlightedMessage,
-                                    );
-                                    // small delay to force reflow and restart animation
+                                  // small delay to force reflow and restart animation
+                                  setTimeout(() => {
+                                    el.classList.add(styles.highlightedMessage);
                                     setTimeout(() => {
-                                      el.classList.add(
+                                      el.classList.remove(
                                         styles.highlightedMessage,
                                       );
-                                      setTimeout(() => {
-                                        el.classList.remove(
-                                          styles.highlightedMessage,
-                                        );
-                                      }, 2000); // match css duration
-                                    }, 10);
-                                  }
+                                    }, 2000); // match css duration
+                                  }, 10);
                                 }
-                              }}
-                            >
-                              <span className={styles.repliedSender}>
-                                {m.replyTo.senderId === userId
-                                  ? "You"
-                                  : selectedUser.username}
-                              </span>
-                              {m.replyTo.type === "sticker" ? (
-                                <div className={styles.repliedSticker}>
-                                  <span className={styles.repliedStickerText}>
-                                    Sticker
-                                  </span>
-                                  <img
-                                    src={m.replyTo.stickerUrl}
-                                    alt="sticker"
-                                    className={styles.repliedStickerImg}
-                                  />
-                                </div>
-                              ) : (
-                                renderMessageWithLinks(
-                                  m.replyTo.message,
-                                  searchQuery,
-                                )
-                              )}
-                            </div>
-                          )}
-
-                          {m.type === "sticker" ? (
-                            <img
-                              src={m.stickerUrl}
-                              alt="sticker"
-                              className={styles.renderedSticker}
-                            />
-                          ) : (
-                            <span className={styles.messageText}>
-                              {renderMessageWithLinks(m.message, searchQuery)}
+                              }
+                            }}
+                          >
+                            <span className={styles.repliedSender}>
+                              {m.replyTo.senderId === userId
+                                ? "You"
+                                : selectedUser.username}
                             </span>
-                          )}
-                        </>
-                      )}
+                            {m.replyTo.type === "sticker" ? (
+                              <div className={styles.repliedSticker}>
+                                <span className={styles.repliedStickerText}>
+                                  Sticker
+                                </span>
+                                <img
+                                  src={m.replyTo.stickerUrl}
+                                  alt="sticker"
+                                  className={styles.repliedStickerImg}
+                                />
+                              </div>
+                            ) : (
+                              renderMessageWithLinks(
+                                m.replyTo.message,
+                                searchQuery,
+                              )
+                            )}
+                          </div>
+                        )}
 
-                      {/* Tail for receiver (left side) */}
-                      {!isSender && !isGrouped && m.type !== "sticker" && (
-                        <div className={styles.tailReceiver} />
-                      )}
+                        {m.type === "sticker" ? (
+                          <img
+                            src={m.stickerUrl}
+                            alt="sticker"
+                            className={styles.renderedSticker}
+                          />
+                        ) : (
+                          <span className={styles.messageText}>
+                            {renderMessageWithLinks(m.message, searchQuery)}
+                          </span>
+                        )}
+                      </>
+                    )}
 
-                      {/* Tail for sender (right side) */}
-                      {isSender && !isGrouped && m.type !== "sticker" && (
-                        <div className={styles.tailSender} />
-                      )}
+                    {/* Tail for receiver (left side) */}
+                    {!isSender && !isGrouped && m.type !== "sticker" && (
+                      <div className={styles.tailReceiver} />
+                    )}
 
-                      <span
-                        className={
-                          m.type === "sticker"
-                            ? styles.messageTimeSticker
-                            : styles.messageTime
-                        }
-                      >
-                        {messageTime}
-                      </span>
-                    </div>
+                    {/* Tail for sender (right side) */}
+                    {isSender && !isGrouped && m.type !== "sticker" && (
+                      <div className={styles.tailSender} />
+                    )}
+
+                    <span
+                      className={
+                        m.type === "sticker"
+                          ? styles.messageTimeSticker
+                          : styles.messageTime
+                      }
+                    >
+                      {messageTime}
+                    </span>
                   </div>
                 </div>
-              </React.Fragment>
-            );
-          });
-        })()}
+              </div>
+            </React.Fragment>
+          );
+        })}
 
         <div ref={messagesEndRef} />
       </div>
@@ -708,6 +814,36 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
             >
               <Sticker className={styles.stickerIcon} size={20} />
             </button>
+            <button
+              type="button"
+              className={`${styles.effectsToggleBtn} ${showEffectsPicker ? styles.effectsToggleBtnActive : ""}`}
+              onClick={() => setShowEffectsPicker(!showEffectsPicker)}
+              title="Effects Menu"
+            >
+              <Sparkles className={styles.effectsIcon} size={20} />
+            </button>
+
+            {showEffectsPicker && (
+              <div className={styles.effectsPickerContainer}>
+                <div className={styles.effectsPickerGrid}>
+                  {EFFECTS_CONFIG.map((effect) => (
+                    <button
+                      key={effect.id}
+                      className={styles.effectItemBtn}
+                      onClick={() => handleTriggerEffect(effect.id)}
+                      title={effect.label}
+                    >
+                      <span className={styles.effectItemIcon}>
+                        {effect.icon}
+                      </span>
+                      <span className={styles.effectItemLabel}>
+                        {effect.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <textarea
               ref={textareaRef}
               className={styles.input}

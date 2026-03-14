@@ -29,6 +29,11 @@ button {
 a {
   text-decoration: none;
 }
+/* lottie */
+.lf-player-container {
+  width: 100%;
+  height: 100%;
+}
 
 /* html */
 @media (min-width: 1440px) and (max-width: 1740px) {
