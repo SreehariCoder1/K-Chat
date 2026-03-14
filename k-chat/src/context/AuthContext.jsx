@@ -5,6 +5,7 @@ import axios from "axios";
 axios.defaults.baseURL = `http://${window.location.hostname}:5000/api`;
 axios.defaults.withCredentials = true;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -21,6 +22,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.get("/auth/check");
       setUser(response.data.user);
     } catch (err) {
+      console.error("Auth check failed:", err);
       setUser(null);
     } finally {
       setLoading(false);

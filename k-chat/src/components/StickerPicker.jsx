@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Plus } from "lucide-react";
 import axios from "axios";
 import styles from "../styles/StickerPicker.module.css";
@@ -22,6 +22,14 @@ const StickerPicker = ({ onClose, onSendSticker }) => {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadName, setUploadName] = useState("");
   const [uploadKeywords, setUploadKeywords] = useState("");
+
+  const activeTabRef = useRef(activeTab);
+  const searchQueryRef = useRef(searchQuery);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    searchQueryRef.current = searchQuery;
+  }, [activeTab, searchQuery]);
 
   const fetchStickers = async (tab, query = "") => {
     setIsLoading(true);
@@ -50,11 +58,11 @@ const StickerPicker = ({ onClose, onSendSticker }) => {
 
   useEffect(() => {
     setShowUploadForm(false);
-    fetchStickers(activeTab, searchQuery);
+    fetchStickers(activeTab, searchQueryRef.current);
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === "search") {
+    if (activeTabRef.current === "search") {
       const delayOp = setTimeout(() => {
         fetchStickers("search", searchQuery);
       }, 500);
@@ -67,7 +75,7 @@ const StickerPicker = ({ onClose, onSendSticker }) => {
     try {
       await axios.post(`/stickers/recents/${sticker._id}`);
     } catch (err) {
-      console.error("Failed to add sticker to recents");
+      console.error("Failed to add sticker to recents", err);
     }
     onSendSticker(sticker);
     onClose();

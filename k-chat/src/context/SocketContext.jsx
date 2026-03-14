@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 import { AuthContext } from "./AuthContext";
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
@@ -15,7 +16,7 @@ export const SocketProvider = ({ children }) => {
         withCredentials: true,
       });
 
-      setSocket(newSocket);
+      setSocket(() => newSocket);
 
       newSocket.on("connect", () => {
         newSocket.emit("addNewUser", user.id);
@@ -34,6 +35,7 @@ export const SocketProvider = ({ children }) => {
         setSocket(null);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   return (
