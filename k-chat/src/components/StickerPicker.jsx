@@ -143,11 +143,14 @@ const StickerPicker = ({ onClose, onSendSticker }) => {
     formData.append("type", type);
 
     try {
-      const res = await fetch("http://localhost:5000/api/stickers/upload", {
-        method: "POST",
-        body: formData,
-        credentials: "include", // Needed for jwt cookie
-      });
+      const res = await fetch(
+        `http://${window.location.hostname}:5000/api/stickers/upload`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include", // Needed for jwt cookie
+        },
+      );
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));

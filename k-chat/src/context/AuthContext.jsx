@@ -2,7 +2,7 @@ import { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
 // Configure Axios
-axios.defaults.baseURL = "http://localhost:5000/api";
+axios.defaults.baseURL = `http://${window.location.hostname}:5000/api`;
 axios.defaults.withCredentials = true;
 
 export const AuthContext = createContext();
