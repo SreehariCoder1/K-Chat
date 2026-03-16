@@ -28,6 +28,8 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [activeTab, setActiveTab] = useState("online");
   const [historyUsers, setHistoryUsers] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [blockedUsersList, setBlockedUsersList] = useState([]);
+  const [loadingBlocked, setLoadingBlocked] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
 
   useEffect(() => {
@@ -132,6 +134,18 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
         .finally(() => {
           setLoadingHistory(false);
         });
+    } else if (activeTab === "blocked") {
+      axios
+        .get("/users/blocked")
+        .then((res) => {
+          setBlockedUsersList(res.data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch blocked users:", err);
+        })
+        .finally(() => {
+          setLoadingBlocked(false);
+        });
     }
   }, [activeTab]);
 
@@ -193,154 +207,183 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <Heart className={styles.icon} />
           <span>Friends</span>
         </div>
+        <div
+          className={`${styles.actionItem} ${activeTab === "blocked" ? styles.activeAction : ""}`}
+          onClick={() => {
+            setActiveTab("blocked");
+            if (activeTab !== "blocked") setLoadingBlocked(true);
+          }}
+        >
+          <Ban className={styles.icon} />
+          <span>Blocked</span>
+        </div>
       </div>
 
       <div className={styles.content}>
         <div className={styles.contentTitle}>
           {activeTab === "online"
             ? `ONLINE \u2014 ${otherOnlineUsers.length}`
-            : `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`}
+            : activeTab === "history"
+              ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
+              : `BLOCKED \u2014 ${blockedUsersList.length}`}
         </div>
         {activeTab === "history" && loadingHistory ? (
           <div className={styles.emptyState}>Loading history...</div>
+        ) : activeTab === "blocked" && loadingBlocked ? (
+          <div className={styles.emptyState}>Loading blocked users...</div>
         ) : activeTab === "online" && otherOnlineUsers.length === 0 ? (
           <div className={styles.emptyState}>No one online right now</div>
         ) : activeTab === "history" && historyUsers.length === 0 ? (
           <div className={styles.emptyState}>No chat history yet</div>
+        ) : activeTab === "blocked" && blockedUsersList.length === 0 ? (
+          <div className={styles.emptyState}>No blocked users</div>
         ) : (
           <div className={styles.onlineList}>
-            {(activeTab === "history" ? historyUsers : otherOnlineUsers).map(
-              (u, idx) => {
-                const bgClass =
-                  u.gender === "female"
-                    ? styles.femaleBg
-                    : u.gender === "other"
-                      ? styles.otherBg
-                      : styles.maleBg;
+            {(activeTab === "history"
+              ? historyUsers
+              : activeTab === "blocked"
+                ? blockedUsersList
+                : otherOnlineUsers
+            ).map((u, idx) => {
+              const bgClass =
+                u.gender === "female"
+                  ? styles.femaleBg
+                  : u.gender === "other"
+                    ? styles.otherBg
+                    : styles.maleBg;
 
-                const AvatarIcon =
-                  u.gender === "female"
-                    ? UserRound
-                    : u.gender === "other"
-                      ? UserCircle
-                      : UserIcon;
+              const AvatarIcon =
+                u.gender === "female"
+                  ? UserRound
+                  : u.gender === "other"
+                    ? UserCircle
+                    : UserIcon;
 
-                const isSelected = selectedUser?._id === u._id;
-                const isTyping = typingUsers.has(u._id);
-                const isUserOnline = otherOnlineUsers.some(
-                  (ou) => ou._id === u._id,
-                );
-                const isBlocked = user?.blockedUsers?.includes(u._id);
+              const isSelected = selectedUser?._id === u._id;
+              const isTyping = typingUsers.has(u._id);
+              const isUserOnline = otherOnlineUsers.some(
+                (ou) => ou._id === u._id,
+              );
+              const isBlocked = user?.blockedUsers?.includes(u._id);
 
-                let displayTime = "";
-                if (activeTab === "history" && u.lastMessageTime) {
-                  const dateLabel = formatDateLabel(u.lastMessageTime);
-                  if (dateLabel === "Today") {
-                    displayTime = formatTime(u.lastMessageTime);
-                  } else {
-                    displayTime = dateLabel;
-                  }
+              let displayTime = "";
+              if (activeTab === "history" && u.lastMessageTime) {
+                const dateLabel = formatDateLabel(u.lastMessageTime);
+                if (dateLabel === "Today") {
+                  displayTime = formatTime(u.lastMessageTime);
+                } else {
+                  displayTime = dateLabel;
                 }
+              }
 
-                return (
-                  <div
-                    key={`${u._id}-${idx}`}
-                    className={`${styles.onlineUserRow} ${bgClass}`}
-                    onClick={() => {
-                      setSelectedUser(u);
-                      if (window.innerWidth <= 500) {
-                        toggleSidebar();
-                      }
-                    }}
-                    style={{
-                      border: isSelected
-                        ? "2px solid #fff"
-                        : "2px solid transparent",
-                      position: "relative",
-                    }}
-                  >
-                    {activeTab === "history" && (
-                      <div
-                        className={styles.onlineIndicator}
-                        style={{
-                          backgroundColor: isUserOnline ? "#4ade80" : "#9ca3af",
-                        }}
-                        title={isUserOnline ? "Online" : "Offline"}
-                      />
-                    )}
-                    {isTyping && (
-                      <div
-                        className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
-                        title="Typing..."
-                      >
-                        <span className={typingStyles.dot}></span>
-                        <span className={typingStyles.dot}></span>
-                        <span className={typingStyles.dot}></span>
-                      </div>
-                    )}
-                    {isBlocked && (
-                      <div
-                        className={styles.blockedIndicator}
-                        title="Blocked User"
-                      >
-                        <Ban
-                          className={styles.blockIcon}
-                          size={16}
-                          color="#ef4444"
-                        />
-                      </div>
-                    )}
-                    <div className={styles.userIconWrapper}>
-                      <AvatarIcon
-                        className={styles.userIconSolid}
-                        fill="currentColor"
-                      />
-                    </div>
-                    <div className={styles.userInfo}>
-                      <div>
-                        <div className={styles.userNameText}>{u.username}</div>
-                        <div className={styles.userDetails}>
-                          {u.age} Yrs, {u.district}, Kerala
-                        </div>
-                      </div>
-                      {activeTab === "history" && displayTime && (
-                        <div className={styles.time}>{displayTime}</div>
-                      )}
-                    </div>
-                    <button
-                      className={styles.moreIconBtn}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenDropdownId(
-                          openDropdownId === u._id ? null : u._id,
-                        );
+              return (
+                <div
+                  key={`${u._id}-${idx}`}
+                  className={`${styles.onlineUserRow} ${bgClass}`}
+                  onClick={() => {
+                    setSelectedUser(u);
+                    if (window.innerWidth <= 500) {
+                      toggleSidebar();
+                    }
+                  }}
+                  style={{
+                    border: isSelected
+                      ? "2px solid #fff"
+                      : "2px solid transparent",
+                    position: "relative",
+                  }}
+                >
+                  {activeTab === "history" && (
+                    <div
+                      className={styles.onlineIndicator}
+                      style={{
+                        backgroundColor: isUserOnline ? "#4ade80" : "#9ca3af",
                       }}
+                      title={isUserOnline ? "Online" : "Offline"}
+                    />
+                  )}
+                  {isTyping && (
+                    <div
+                      className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
+                      title="Typing..."
                     >
-                      <MoreHorizontal className={styles.moreIcon} size={18} />
-                    </button>
-
-                    {openDropdownId === u._id && (
-                      <div className={styles.contextMenu}>
-                        <div
-                          className={`${styles.contextMenuItem} ${isBlocked ? styles.textUnblock : styles.textBlock}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (isBlocked) {
-                              unblockUser(u._id);
-                            } else {
-                              blockUser(u._id);
-                            }
-                            setOpenDropdownId(null);
-                          }}
-                        >
-                          {isBlocked ? "Unblock" : "Block"}
-                        </div>
+                      <span className={typingStyles.dot}></span>
+                      <span className={typingStyles.dot}></span>
+                      <span className={typingStyles.dot}></span>
+                    </div>
+                  )}
+                  {isBlocked && (
+                    <div
+                      className={styles.blockedIndicator}
+                      title="Blocked User"
+                    >
+                      <Ban
+                        className={styles.blockIcon}
+                        size={16}
+                        color="#ef4444"
+                      />
+                    </div>
+                  )}
+                  <div className={styles.userIconWrapper}>
+                    <AvatarIcon
+                      className={styles.userIconSolid}
+                      fill="currentColor"
+                    />
+                  </div>
+                  <div className={styles.userInfo}>
+                    <div>
+                      <div className={styles.userNameText}>{u.username}</div>
+                      <div className={styles.userDetails}>
+                        {u.age} Yrs, {u.district}, Kerala
                       </div>
+                    </div>
+                    {activeTab === "history" && displayTime && (
+                      <div className={styles.time}>{displayTime}</div>
                     )}
                   </div>
-                );
-              },
-            )}
+                  <button
+                    className={styles.moreIconBtn}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOpenDropdownId(
+                        openDropdownId === u._id ? null : u._id,
+                      );
+                    }}
+                  >
+                    <MoreHorizontal className={styles.moreIcon} size={18} />
+                  </button>
+
+                  {openDropdownId === u._id && (
+                    <div className={styles.contextMenu}>
+                      <div
+                        className={`${styles.contextMenuItem} ${isBlocked ? styles.textUnblock : styles.textBlock}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (isBlocked) {
+                            unblockUser(u._id).then((res) => {
+                              if (
+                                res &&
+                                res.success &&
+                                activeTab === "blocked"
+                              ) {
+                                setBlockedUsersList((prev) =>
+                                  prev.filter((usr) => usr._id !== u._id),
+                                );
+                              }
+                            });
+                          } else {
+                            blockUser(u._id);
+                          }
+                          setOpenDropdownId(null);
+                        }}
+                      >
+                        {isBlocked ? "Unblock" : "Block"}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

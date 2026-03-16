@@ -66,3 +66,15 @@ export const unblockUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getBlockedUsers = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const blockedUsersDetails =
+      await userRepository.getBlockedUsersDetails(userId);
+    res.status(200).json(blockedUsersDetails);
+  } catch (error) {
+    console.error("Error in getBlockedUsers:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

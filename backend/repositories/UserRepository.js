@@ -55,6 +55,14 @@ class UserRepository {
     }
     return user;
   }
+
+  async getBlockedUsersDetails(userId) {
+    const user = await User.findById(userId).populate({
+      path: "blockedUsers",
+      select: "username gender age district _id",
+    });
+    return user ? user.blockedUsers : [];
+  }
 }
 
 export default new UserRepository();
