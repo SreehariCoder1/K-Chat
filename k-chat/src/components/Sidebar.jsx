@@ -379,6 +379,42 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                       >
                         {isBlocked ? "Unblock" : "Block"}
                       </div>
+
+                      {activeTab === "history" && (
+                        <div
+                          className={`${styles.contextMenuItem} ${styles.textDelete}`}
+                          style={{ color: "#ef4444" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const confirmed = window.confirm(
+                              "Are you sure you want to delete this chat history? All messages will be permanently deleted.",
+                            );
+                            if (confirmed) {
+                              axios
+                                .delete(`/messages/history/${u._id}`)
+                                .then(() => {
+                                  setHistoryUsers((prev) =>
+                                    prev.filter((usr) => usr._id !== u._id),
+                                  );
+                                  // if the user was the selected user, un-select them
+                                  if (selectedUser?._id === u._id) {
+                                    setSelectedUser(null);
+                                  }
+                                })
+                                .catch((err) => {
+                                  console.error(
+                                    "Failed to delete chat history:",
+                                    err,
+                                  );
+                                  alert("Failed to delete chat history.");
+                                });
+                            }
+                            setOpenDropdownId(null);
+                          }}
+                        >
+                          Delete Chat
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -25,3 +25,17 @@ export const getChatHistory = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+export const deleteHistory = async (req, res) => {
+  try {
+    const { id: targetUserId } = req.params;
+    const currentUserId = req.user.id;
+
+    await MessageRepository.deleteChatHistory(currentUserId, targetUserId);
+
+    res.status(200).json({ message: "Chat history deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting chat history:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};

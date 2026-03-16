@@ -90,6 +90,15 @@ class MessageRepository {
       new: true,
     });
   }
+
+  async deleteChatHistory(userId1, userId2) {
+    return await Message.deleteMany({
+      $or: [
+        { senderId: userId1, receiverId: userId2 },
+        { senderId: userId2, receiverId: userId1 },
+      ],
+    });
+  }
 }
 
 export default new MessageRepository();
