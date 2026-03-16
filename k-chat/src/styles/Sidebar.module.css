@@ -13,6 +13,11 @@
   margin-left: -20rem;
 }
 
+.headerLogoContainer {
+  display: flex;
+  align-items: center;
+}
+
 .header {
   height: 3em;
   display: flex;
@@ -84,6 +89,15 @@
   color: #374151;
 }
 
+.activeAction {
+  color: #5c6bc0;
+  font-weight: 700;
+}
+
+.activeAction:hover {
+  color: #16a34a;
+}
+
 .icon {
   width: 1.7em;
   height: 1.7em;
@@ -131,9 +145,19 @@
   display: flex;
   align-items: center;
   padding: 0.2em 0.4em;
-  gap: 0.9em;
+  gap: 0.3em;
   cursor: pointer;
   position: relative;
+}
+.onlineIndicator {
+  position: absolute;
+  bottom: 0.5em;
+  left: 2.5em;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: 50%;
+  border: 0.15em solid rgb(255, 255, 255);
+  z-index: 2;
 }
 
 .maleBg {
@@ -182,8 +206,10 @@
 
 .userInfo {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
+  align-items: flex-start;
 }
 
 .userNameText {
@@ -196,6 +222,15 @@
   font-size: 0.85rem;
   color: #4b5563;
   margin-top: 0.1em;
+}
+
+.time {
+  font-size: 0.75rem;
+  color: rgb(75, 85, 99);
+  margin-top: 0.1em;
+  font-weight: 500;
+  white-space: nowrap;
+  margin-left: 0.5em;
 }
 
 .footer {
@@ -247,6 +282,88 @@
 .toggleIcon {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+/* part of block ui */
+.blockedIndicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0.31em;
+  left: 0.31em;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  padding: 0.15em;
+}
+
+.blockIcon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.moreIconBtn {
+  position: absolute;
+  bottom: -0.5em;
+  right: 0.1em;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.moreIconBtn:hover {
+  color: #374151;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.moreIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.contextMenu {
+  position: absolute;
+  bottom: 1.5em;
+  right: 0.5em;
+  background-color: white;
+  border-radius: 0.5em;
+  box-shadow:
+    0 0.25em 0.375em -0.1em rgba(0, 0, 0, 0.1),
+    0 0.125em 0.25em -0.1em rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  z-index: 10;
+  overflow: hidden;
+  min-width: 6em;
+}
+
+.contextMenuItem {
+  padding: 0.3em 0.8em;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #374151;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.contextMenuItem:hover {
+  background-color: #f3f4f6;
+}
+
+.textBlock {
+  color: #ef4444;
+}
+
+.textUnblock {
+  color: #10b981;
 }
 
 /* media queries */

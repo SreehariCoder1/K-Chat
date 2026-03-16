@@ -59,12 +59,7 @@ const ForgotPassword = () => {
             </div>
 
             {isSubmitting ? (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                }}
-              >
+              <div className={styles.loaderBox}>
                 <Loader />
               </div>
             ) : (

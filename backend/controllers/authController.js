@@ -158,6 +158,7 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         district: user.district,
+        blockedUsers: user.blockedUsers || [],
       },
     });
   } catch (error) {
@@ -195,6 +196,7 @@ export const checkAuth = async (req, res) => {
         username: user.username,
         email: user.email,
         district: user.district,
+        blockedUsers: user.blockedUsers || [],
       },
     });
   } catch (error) {

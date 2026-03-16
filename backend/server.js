@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import stickerRoutes from "./routes/stickerRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
 import User from "./models/User.js";
@@ -28,6 +29,7 @@ app.use(
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/stickers", stickerRoutes);
+app.use("/api/users", userRoutes);
 
 // Database connection
 const PORT = process.env.PORT || 5000;
@@ -86,6 +88,17 @@ io.on("connection", (socket) => {
           return;
         }
 
+        // Check if receiver blocked sender
+        const receiver = await User.findById(receiverId).select("blockedUsers");
+        let isBlocked = false;
+        if (
+          receiver &&
+          receiver.blockedUsers &&
+          receiver.blockedUsers.includes(senderId)
+        ) {
+          isBlocked = true;
+        }
+
         // Save to DB
         let savedMessage = await MessageRepository.saveMessage({
           senderId,
@@ -94,6 +107,7 @@ io.on("connection", (socket) => {
           type: type || "text",
           stickerUrl,
           replyTo,
+          isBlocked,
         });
 
         // Populate replyTo for realtime receiver update
@@ -102,9 +116,9 @@ io.on("connection", (socket) => {
           "message senderId type stickerUrl",
         );
 
-        // Real-time emit to receiver if online
+        // Real-time emit to receiver if online and not blocked
         const receiverSocketId = userSocketMap.get(receiverId);
-        if (receiverSocketId) {
+        if (receiverSocketId && !isBlocked) {
           io.to(receiverSocketId).emit("receiveMessage", savedMessage);
         }
 
@@ -121,16 +135,32 @@ io.on("connection", (socket) => {
     },
   );
 
-  socket.on("typing", ({ senderId, receiverId }) => {
+  socket.on("typing", async ({ senderId, receiverId }) => {
     const receiverSocketId = userSocketMap.get(receiverId);
     if (receiverSocketId) {
+      const receiver = await User.findById(receiverId).select("blockedUsers");
+      if (
+        receiver &&
+        receiver.blockedUsers &&
+        receiver.blockedUsers.includes(senderId)
+      ) {
+        return;
+      }
       io.to(receiverSocketId).emit("typing", { senderId });
     }
   });
 
-  socket.on("stopTyping", ({ senderId, receiverId }) => {
+  socket.on("stopTyping", async ({ senderId, receiverId }) => {
     const receiverSocketId = userSocketMap.get(receiverId);
     if (receiverSocketId) {
+      const receiver = await User.findById(receiverId).select("blockedUsers");
+      if (
+        receiver &&
+        receiver.blockedUsers &&
+        receiver.blockedUsers.includes(senderId)
+      ) {
+        return;
+      }
       io.to(receiverSocketId).emit("stopTyping", { senderId });
     }
   });
@@ -138,9 +168,20 @@ io.on("connection", (socket) => {
   // ── Effects Feature ────────────────────────────────────────────────────
   // Emits to both the receiver AND echoes back to the sender so both
   // chatting users see the animation at the same time.
-  socket.on("playEffect", ({ senderId, receiverId, effectType }) => {
+  socket.on("playEffect", async ({ senderId, receiverId, effectType }) => {
     const receiverSocketId = userSocketMap.get(receiverId);
+    let isBlocked = false;
     if (receiverSocketId) {
+      const receiver = await User.findById(receiverId).select("blockedUsers");
+      if (
+        receiver &&
+        receiver.blockedUsers &&
+        receiver.blockedUsers.includes(senderId)
+      ) {
+        isBlocked = true;
+      }
+    }
+    if (receiverSocketId && !isBlocked) {
       io.to(receiverSocketId).emit("playEffect", { senderId, effectType });
     }
     // Echo back to sender so they also see the animation

@@ -56,6 +56,12 @@ const userSchema = new mongoose.Schema(
         ref: "Sticker",
       },
     ],
+    blockedUsers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true },
 );

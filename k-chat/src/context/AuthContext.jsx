@@ -98,6 +98,40 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const blockUser = async (userIdToBlock) => {
+    try {
+      const response = await axios.post(`/users/block/${userIdToBlock}`);
+      setUser((prev) => ({
+        ...prev,
+        blockedUsers: response.data.blockedUsers,
+      }));
+      return { success: true };
+    } catch (err) {
+      console.error(err);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to block user",
+      };
+    }
+  };
+
+  const unblockUser = async (userIdToUnblock) => {
+    try {
+      const response = await axios.post(`/users/unblock/${userIdToUnblock}`);
+      setUser((prev) => ({
+        ...prev,
+        blockedUsers: response.data.blockedUsers,
+      }));
+      return { success: true };
+    } catch (err) {
+      console.error(err);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to unblock user",
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -108,6 +142,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     forgotPassword,
     resetPassword,
+    blockUser,
+    unblockUser,
   };
 
   return (

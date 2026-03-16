@@ -124,6 +124,11 @@
   color: #4caf50;
 }
 
+.loaderBox {
+  display: flex;
+  justify-content: center;
+}
+
 .loginBtn {
   background-color: #2e7d32;
   color: white;

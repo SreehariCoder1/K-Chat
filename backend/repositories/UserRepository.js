@@ -31,6 +31,30 @@ class UserRepository {
     const user = new User(userData);
     return await user.save();
   }
+
+  async blockUser(actingUserId, targetUserId) {
+    const user = await this.findById(actingUserId);
+    if (!user) throw new Error("User not found");
+
+    if (!user.blockedUsers.includes(targetUserId)) {
+      user.blockedUsers.push(targetUserId);
+      await user.save();
+    }
+    return user;
+  }
+
+  async unblockUser(actingUserId, targetUserId) {
+    const user = await this.findById(actingUserId);
+    if (!user) throw new Error("User not found");
+
+    if (user.blockedUsers.includes(targetUserId)) {
+      user.blockedUsers = user.blockedUsers.filter(
+        (id) => id.toString() !== targetUserId.toString(),
+      );
+      await user.save();
+    }
+    return user;
+  }
 }
 
 export default new UserRepository();

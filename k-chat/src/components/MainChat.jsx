@@ -83,7 +83,7 @@ const EFFECTS_CONFIG = [
 const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const { user } = useContext(AuthContext);
+  const { user, unblockUser } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
   const [floatingDate, setFloatingDate] = useState("");
   const [isScrolling, setIsScrolling] = useState(false);
@@ -119,6 +119,8 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
+  const isBlocked = user?.blockedUsers?.includes(selectedUser?._id);
 
   const isChatVisible = !isMobile || !isOpen;
 
@@ -452,6 +454,9 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         setMessages((prev) =>
           prev.map((m) => (m._id === fakeId ? savedMessage : m)),
         );
+        window.dispatchEvent(
+          new CustomEvent("localMessageSent", { detail: savedMessage }),
+        );
       }
     });
     setNewMessage("");
@@ -504,6 +509,9 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       if (savedMessage && !savedMessage.error) {
         setMessages((prev) =>
           prev.map((m) => (m._id === fakeId ? savedMessage : m)),
+        );
+        window.dispatchEvent(
+          new CustomEvent("localMessageSent", { detail: savedMessage }),
         );
       }
     });
@@ -770,99 +778,113 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       )}
 
       <div className={styles.inputSection}>
-        {showStickerPicker && (
-          <StickerPicker
-            onClose={() => setShowStickerPicker(false)}
-            onSendSticker={handleSendSticker}
-          />
-        )}
-
-        {/* Reply Preview Banner */}
-        {replyingTo && (
-          <div className={styles.replyPreviewContainer}>
-            <div className={styles.replyPreviewText}>
-              {replyingTo.type === "sticker" ? (
-                <div className={styles.replyPreviewSticker}>
-                  <span>Sticker</span>
-                  <img
-                    src={replyingTo.stickerUrl}
-                    alt="sticker preview"
-                    className={styles.replyPreviewStickerImg}
-                  />
-                </div>
-              ) : (
-                replyingTo.message
-              )}
-            </div>
+        {isBlocked ? (
+          <div className={styles.blockedMessageContainer}>
+            <span>You have blocked this user.</span>
             <button
-              type="button"
-              className={styles.cancelReplyBtn}
-              onClick={() => setReplyingTo(null)}
+              onClick={() => unblockUser(selectedUser._id)}
+              className={styles.unblockActionBtn}
             >
-              <X className={styles.cancelIcon} size={16} />
+              Unblock
             </button>
           </div>
-        )}
+        ) : (
+          <>
+            {showStickerPicker && (
+              <StickerPicker
+                onClose={() => setShowStickerPicker(false)}
+                onSendSticker={handleSendSticker}
+              />
+            )}
 
-        <form className={styles.inputArea} onSubmit={handleSendMessage}>
-          <div className={styles.inputWrapper}>
-            <button
-              type="button"
-              className={`${styles.stickerToggleBtn} ${showStickerPicker ? styles.stickerToggleBtnActive : ""}`}
-              onClick={() => setShowStickerPicker(!showStickerPicker)}
-              title="Sticker"
-            >
-              <Sticker className={styles.stickerIcon} size={20} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.effectsToggleBtn} ${showEffectsPicker ? styles.effectsToggleBtnActive : ""}`}
-              onClick={() => setShowEffectsPicker(!showEffectsPicker)}
-              title="Effects Menu"
-            >
-              <Sparkles className={styles.effectsIcon} size={20} />
-            </button>
-
-            {showEffectsPicker && (
-              <div className={styles.effectsPickerContainer}>
-                <div className={styles.effectsPickerGrid}>
-                  {EFFECTS_CONFIG.map((effect) => (
-                    <button
-                      key={effect.id}
-                      className={styles.effectItemBtn}
-                      onClick={() => handleTriggerEffect(effect.id)}
-                      title={effect.label}
-                    >
-                      <span className={styles.effectItemIcon}>
-                        {effect.icon}
-                      </span>
-                      <span className={styles.effectItemLabel}>
-                        {effect.label}
-                      </span>
-                    </button>
-                  ))}
+            {/* Reply Preview Banner */}
+            {replyingTo && (
+              <div className={styles.replyPreviewContainer}>
+                <div className={styles.replyPreviewText}>
+                  {replyingTo.type === "sticker" ? (
+                    <div className={styles.replyPreviewSticker}>
+                      <span>Sticker</span>
+                      <img
+                        src={replyingTo.stickerUrl}
+                        alt="sticker preview"
+                        className={styles.replyPreviewStickerImg}
+                      />
+                    </div>
+                  ) : (
+                    replyingTo.message
+                  )}
                 </div>
+                <button
+                  type="button"
+                  className={styles.cancelReplyBtn}
+                  onClick={() => setReplyingTo(null)}
+                >
+                  <X className={styles.cancelIcon} size={16} />
+                </button>
               </div>
             )}
-            <textarea
-              ref={textareaRef}
-              className={styles.input}
-              placeholder="Type a message..."
-              value={newMessage}
-              onChange={handleTypingChange}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              maxLength={2000}
-            />
-          </div>
-          <button
-            type="submit"
-            className={styles.sendBtn}
-            disabled={!newMessage.trim()}
-          >
-            <Send className={styles.sendIcon} size={20} />
-          </button>
-        </form>
+
+            <form className={styles.inputArea} onSubmit={handleSendMessage}>
+              <div className={styles.inputWrapper}>
+                <button
+                  type="button"
+                  className={`${styles.stickerToggleBtn} ${showStickerPicker ? styles.stickerToggleBtnActive : ""}`}
+                  onClick={() => setShowStickerPicker(!showStickerPicker)}
+                  title="Sticker"
+                >
+                  <Sticker className={styles.stickerIcon} size={20} />
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.effectsToggleBtn} ${showEffectsPicker ? styles.effectsToggleBtnActive : ""}`}
+                  onClick={() => setShowEffectsPicker(!showEffectsPicker)}
+                  title="Effects Menu"
+                >
+                  <Sparkles className={styles.effectsIcon} size={20} />
+                </button>
+
+                {showEffectsPicker && (
+                  <div className={styles.effectsPickerContainer}>
+                    <div className={styles.effectsPickerGrid}>
+                      {EFFECTS_CONFIG.map((effect) => (
+                        <button
+                          key={effect.id}
+                          className={styles.effectItemBtn}
+                          onClick={() => handleTriggerEffect(effect.id)}
+                          title={effect.label}
+                        >
+                          <span className={styles.effectItemIcon}>
+                            {effect.icon}
+                          </span>
+                          <span className={styles.effectItemLabel}>
+                            {effect.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <textarea
+                  ref={textareaRef}
+                  className={styles.input}
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={handleTypingChange}
+                  onKeyDown={handleKeyDown}
+                  rows={1}
+                  maxLength={2000}
+                />
+              </div>
+              <button
+                type="submit"
+                className={styles.sendBtn}
+                disabled={!newMessage.trim()}
+              >
+                <Send className={styles.sendIcon} size={20} />
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
