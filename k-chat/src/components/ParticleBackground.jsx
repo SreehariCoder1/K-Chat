@@ -29,10 +29,6 @@ const ParticleBackground = React.memo(() => {
         fpsLimit: 60,
         interactivity: {
           events: {
-            onClick: {
-              enable: true,
-              mode: "push",
-            },
             onHover: {
               enable: true,
               mode: "grab",
