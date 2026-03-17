@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
+import OnlineFilter from "./OnlineFilter";
 
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout, blockUser, unblockUser } = useContext(AuthContext);
@@ -31,6 +32,13 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [blockedUsersList, setBlockedUsersList] = useState([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    gender: "all",
+    ageMin: "",
+    ageMax: "",
+    district: "all",
+  });
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -45,6 +53,18 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const otherOnlineUsers = onlineUsers.filter(
     (u) => u._id !== user?.id && u._id !== user?._id,
   );
+
+  const filteredOnlineUsers = otherOnlineUsers.filter((u) => {
+    if (filters.gender !== "all" && u.gender !== filters.gender) return false;
+    if (filters.ageMin && u.age < parseInt(filters.ageMin, 10)) return false;
+    if (filters.ageMax && u.age > parseInt(filters.ageMax, 10)) return false;
+    if (
+      filters.district !== "all" &&
+      u.district?.toLowerCase() !== filters.district.toLowerCase()
+    )
+      return false;
+    return true;
+  });
 
   const fetchHistory = () => {
     axios
@@ -178,10 +198,6 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <User className={styles.icon} />
           <span>Online</span>
         </div>
-        <div className={styles.actionItem}>
-          <Filter className={styles.icon} />
-          <span>Filter</span>
-        </div>
         <div
           className={`${styles.actionItem} ${activeTab === "history" ? styles.activeAction : ""}`}
           onClick={() => {
@@ -220,19 +236,39 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
       </div>
 
       <div className={styles.content}>
-        <div className={styles.contentTitle}>
-          {activeTab === "online"
-            ? `ONLINE \u2014 ${otherOnlineUsers.length}`
-            : activeTab === "history"
-              ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
-              : `BLOCKED \u2014 ${blockedUsersList.length}`}
+        <div className={styles.contentTitleContainer}>
+          <div className={styles.contentTitle}>
+            {activeTab === "online"
+              ? `ONLINE \u2014 ${filteredOnlineUsers.length}`
+              : activeTab === "history"
+                ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
+                : `BLOCKED \u2014 ${blockedUsersList.length}`}
+          </div>
+          {activeTab === "online" && (
+            <div
+              className={`${styles.filterHeaderIcon} ${showFilters ? styles.filterHeaderIconActive : ""}`}
+              onClick={() => setShowFilters(!showFilters)}
+              title="Filter Online Users"
+            >
+              <Filter className={styles.filterIcon} size={16} />
+            </div>
+          )}
         </div>
+
+        {activeTab === "online" && showFilters && (
+          <OnlineFilter filters={filters} setFilters={setFilters} />
+        )}
+
         {activeTab === "history" && loadingHistory ? (
           <div className={styles.emptyState}>Loading history...</div>
         ) : activeTab === "blocked" && loadingBlocked ? (
           <div className={styles.emptyState}>Loading blocked users...</div>
-        ) : activeTab === "online" && otherOnlineUsers.length === 0 ? (
-          <div className={styles.emptyState}>No one online right now</div>
+        ) : activeTab === "online" && filteredOnlineUsers.length === 0 ? (
+          <div className={styles.emptyState}>
+            {otherOnlineUsers.length === 0
+              ? "No one online right now"
+              : "No users match your filters"}
+          </div>
         ) : activeTab === "history" && historyUsers.length === 0 ? (
           <div className={styles.emptyState}>No chat history yet</div>
         ) : activeTab === "blocked" && blockedUsersList.length === 0 ? (
@@ -243,7 +279,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
               ? historyUsers
               : activeTab === "blocked"
                 ? blockedUsersList
-                : otherOnlineUsers
+                : filteredOnlineUsers
             ).map((u, idx) => {
               const bgClass =
                 u.gender === "female"
