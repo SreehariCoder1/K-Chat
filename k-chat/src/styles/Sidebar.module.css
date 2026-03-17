@@ -157,6 +157,35 @@
   height: 1rem;
 }
 
+/* search styles */
+.searchContainer {
+  padding: 0 0.8em;
+  margin-bottom: 0.5em;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.6em 1em;
+  border-radius: 1.5em;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  font-size: 0.85rem;
+  color: #374151;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.searchInput:focus {
+  border-color: #84cc16;
+  background-color: #ffffff;
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
 .emptyState {
   color: #9ca3af;
   font-size: 0.9rem;

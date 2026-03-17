@@ -39,6 +39,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
     ageMax: "",
     district: "all",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -169,6 +172,33 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
     }
   }, [activeTab]);
 
+  useEffect(() => {
+    let delayFn;
+
+    const fetchSearchResults = async () => {
+      try {
+        const res = await axios.get(
+          `/users/search?q=${encodeURIComponent(searchQuery)}`,
+        );
+        setSearchResults(res.data);
+      } catch (err) {
+        console.error("Search failed:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    if (activeTab === "search" && searchQuery.trim() !== "") {
+      delayFn = setTimeout(() => {
+        fetchSearchResults();
+      }, 500);
+    }
+
+    return () => {
+      if (delayFn) clearTimeout(delayFn);
+    };
+  }, [searchQuery, activeTab]);
+
   return (
     <div className={`${styles.sidebar} ${isOpen ? "" : styles.sidebarClosed}`}>
       <div className={styles.header}>
@@ -208,7 +238,10 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <List className={styles.icon} />
           <span>History</span>
         </div>
-        <div className={styles.actionItem}>
+        <div
+          className={`${styles.actionItem} ${activeTab === "search" ? styles.activeAction : ""}`}
+          onClick={() => setActiveTab("search")}
+        >
           <Search className={styles.icon} />
           <span>Search</span>
         </div>
@@ -242,7 +275,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
               ? `ONLINE \u2014 ${filteredOnlineUsers.length}`
               : activeTab === "history"
                 ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
-                : `BLOCKED \u2014 ${blockedUsersList.length}`}
+                : activeTab === "search"
+                  ? `SEARCH RESULTS \u2014 ${searchResults.length}`
+                  : `BLOCKED \u2014 ${blockedUsersList.length}`}
           </div>
           {activeTab === "online" && (
             <div
@@ -259,10 +294,41 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <OnlineFilter filters={filters} setFilters={setFilters} />
         )}
 
+        {activeTab === "search" && (
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search by username, gender, district, age..."
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                if (val.trim() !== "") {
+                  setIsSearching(true);
+                } else {
+                  setIsSearching(false);
+                  setSearchResults([]);
+                }
+              }}
+              className={styles.searchInput}
+            />
+          </div>
+        )}
+
         {activeTab === "history" && loadingHistory ? (
           <div className={styles.emptyState}>Loading history...</div>
         ) : activeTab === "blocked" && loadingBlocked ? (
           <div className={styles.emptyState}>Loading blocked users...</div>
+        ) : activeTab === "search" && isSearching ? (
+          <div className={styles.emptyState}>Searching...</div>
+        ) : activeTab === "search" &&
+          searchQuery.trim() !== "" &&
+          searchResults.length === 0 ? (
+          <div className={styles.emptyState}>No users found</div>
+        ) : activeTab === "search" && searchQuery.trim() === "" ? (
+          <div className={styles.emptyState}>
+            Type to search for users globally
+          </div>
         ) : activeTab === "online" && filteredOnlineUsers.length === 0 ? (
           <div className={styles.emptyState}>
             {otherOnlineUsers.length === 0
@@ -279,7 +345,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
               ? historyUsers
               : activeTab === "blocked"
                 ? blockedUsersList
-                : filteredOnlineUsers
+                : activeTab === "search"
+                  ? searchResults
+                  : filteredOnlineUsers
             ).map((u, idx) => {
               const bgClass =
                 u.gender === "female"

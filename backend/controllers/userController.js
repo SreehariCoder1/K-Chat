@@ -78,3 +78,18 @@ export const getBlockedUsers = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim() === "") {
+      return res.status(200).json([]);
+    }
+    const userId = req.user.id;
+    const results = await userRepository.searchUsers(q, userId);
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error in searchUsers:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

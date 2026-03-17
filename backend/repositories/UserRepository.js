@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import mongoose from "mongoose";
 
 class UserRepository {
   async findByEmail(email) {
@@ -62,6 +63,84 @@ class UserRepository {
       select: "username gender age district _id",
     });
     return user ? user.blockedUsers : [];
+  }
+
+  async searchUsers(query, currentUserId) {
+    if (!query) return [];
+
+    const escapeRegExp = (string) => {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const safeQuery = escapeRegExp(query);
+    const regexQuery = new RegExp(safeQuery, "i");
+    const isNum = !isNaN(query) && query.trim() !== "";
+    const numQuery = isNum ? Number(query) : null;
+
+    const matchConditions = [
+      { username: regexQuery },
+      { gender: regexQuery },
+      { district: regexQuery },
+    ];
+
+    if (isNum) {
+      matchConditions.push({ age: numQuery });
+    }
+
+    const pipeline = [
+      {
+        $match: {
+          $and: [
+            { _id: { $ne: new mongoose.Types.ObjectId(currentUserId) } },
+            { $or: matchConditions },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          searchScore: {
+            $add: [
+              {
+                $cond: [
+                  { $regexMatch: { input: "$username", regex: regexQuery } },
+                  100,
+                  0,
+                ],
+              },
+              {
+                $cond: [
+                  { $regexMatch: { input: "$gender", regex: regexQuery } },
+                  50,
+                  0,
+                ],
+              },
+              {
+                $cond: [
+                  { $regexMatch: { input: "$district", regex: regexQuery } },
+                  25,
+                  0,
+                ],
+              },
+              isNum ? { $cond: [{ $eq: ["$age", numQuery] }, 10, 0] } : 0,
+            ],
+          },
+        },
+      },
+      { $sort: { searchScore: -1 } },
+      { $limit: 50 },
+      {
+        $project: {
+          username: 1,
+          gender: 1,
+          age: 1,
+          district: 1,
+          _id: 1,
+        },
+      },
+    ];
+
+    const sortedUsers = await User.aggregate(pipeline);
+    return sortedUsers;
   }
 }
 
