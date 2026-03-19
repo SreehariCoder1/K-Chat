@@ -599,8 +599,18 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
           )}
         </div>
       </div>
-
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
+        <div className={styles.safetyBanner}>
+          🛡️ Stay safe. Avoid sharing sensitive personal information in chats.
+          <a
+            href="https://reachlink.com/advice/chat/stay-safe-while-chatting-with-online-strangers-essential-tips/"
+            className={styles.adviceLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ADVICE
+          </a>
+        </div>
         {floatingDate && (
           <div
             className={`${styles.floatingDateContainer} ${isScrolling ? styles.visible : ""}`}

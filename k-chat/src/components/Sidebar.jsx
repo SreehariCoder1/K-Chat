@@ -8,7 +8,7 @@ import {
   Filter,
   List,
   Search,
-  Inbox,
+  Dices,
   Heart,
   Power,
   User as UserIcon,
@@ -21,6 +21,7 @@ import {
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 import OnlineFilter from "./OnlineFilter";
+import RandomChat from "./RandomChat";
 
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout, blockUser, unblockUser } = useContext(AuthContext);
@@ -238,6 +239,10 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <List className={styles.icon} />
           <span>History</span>
         </div>
+        <div className={styles.actionItem}>
+          <Heart className={styles.icon} />
+          <span>Favorites</span>
+        </div>
         <div
           className={`${styles.actionItem} ${activeTab === "search" ? styles.activeAction : ""}`}
           onClick={() => setActiveTab("search")}
@@ -245,16 +250,12 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <Search className={styles.icon} />
           <span>Search</span>
         </div>
-        <div className={styles.actionItem}>
-          <div style={{ position: "relative", display: "flex" }}>
-            <Inbox className={styles.icon} />
-            <span className={styles.badge}>24</span>
-          </div>
-          <span>Inbox</span>
-        </div>
-        <div className={styles.actionItem}>
-          <Heart className={styles.icon} />
-          <span>Friends</span>
+        <div
+          className={`${styles.actionItem} ${activeTab === "random" ? styles.activeAction : ""}`}
+          onClick={() => setActiveTab("random")}
+        >
+          <Dices className={styles.icon} />
+          <span>Random</span>
         </div>
         <div
           className={`${styles.actionItem} ${activeTab === "blocked" ? styles.activeAction : ""}`}
@@ -277,7 +278,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                 ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
                 : activeTab === "search"
                   ? `SEARCH RESULTS \u2014 ${searchResults.length}`
-                  : `BLOCKED \u2014 ${blockedUsersList.length}`}
+                  : activeTab === "random"
+                    ? "RANDOM CHAT"
+                    : `BLOCKED \u2014 ${blockedUsersList.length}`}
           </div>
           {activeTab === "online" && (
             <div
@@ -315,7 +318,16 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           </div>
         )}
 
-        {activeTab === "history" && loadingHistory ? (
+        <RandomChat
+          selectedUser={selectedUser}
+          setSelectedUser={setSelectedUser}
+          toggleSidebar={toggleSidebar}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+
+        {activeTab === "random" ? null : activeTab === "history" &&
+          loadingHistory ? (
           <div className={styles.emptyState}>Loading history...</div>
         ) : activeTab === "blocked" && loadingBlocked ? (
           <div className={styles.emptyState}>Loading blocked users...</div>

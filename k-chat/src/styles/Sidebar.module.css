@@ -103,17 +103,6 @@
   height: 1.7em;
 }
 
-.badge {
-  position: absolute;
-  top: -1em;
-  right: -1em;
-  background-color: #ef4444;
-  color: white;
-  font-size: 0.6rem;
-  border-radius: 1em;
-  padding: 0.2em 0.5em;
-}
-
 .content {
   flex: 1;
   overflow-y: auto;

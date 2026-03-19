@@ -91,6 +91,15 @@ class MessageRepository {
     });
   }
 
+  async haveChatHistory(userId1, userId2) {
+    // Only consider it "history" if BOTH users have messaged each other
+    const [sentByUser1, sentByUser2] = await Promise.all([
+      Message.exists({ senderId: userId1, receiverId: userId2 }),
+      Message.exists({ senderId: userId2, receiverId: userId1 }),
+    ]);
+    return !!(sentByUser1 && sentByUser2);
+  }
+
   async deleteChatHistory(userId1, userId2) {
     return await Message.deleteMany({
       $or: [

@@ -178,12 +178,10 @@ export const addFavorite = async (req, res) => {
       await StickerRepository.saveUser(user);
     }
 
-    res
-      .status(200)
-      .json({
-        message: "Added to favorites",
-        favoriteStickers: user.favoriteStickers,
-      });
+    res.status(200).json({
+      message: "Added to favorites",
+      favoriteStickers: user.favoriteStickers,
+    });
   } catch (error) {
     console.error("Error in addFavorite controller:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -236,12 +234,10 @@ export const addRecent = async (req, res) => {
 
     await StickerRepository.saveUser(user);
 
-    res
-      .status(200)
-      .json({
-        message: "Added to recents",
-        recentStickers: user.recentStickers,
-      });
+    res.status(200).json({
+      message: "Added to recents",
+      recentStickers: user.recentStickers,
+    });
   } catch (error) {
     console.error("Error in addRecent controller:", error);
     res.status(500).json({ error: "Internal server error" });
