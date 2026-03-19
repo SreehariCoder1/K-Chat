@@ -107,6 +107,20 @@
   flex: 1;
   overflow-y: auto;
   padding: 0.5em 0;
+  scrollbar-color: #84cc16 transparent;
+  scrollbar-width: thin;
+}
+
+.content::-webkit-scrollbar {
+  width: 0.4em;
+  height: 0.4em;
+}
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.content::-webkit-scrollbar-thumb {
+  background-color: #84cc16;
+  border-radius: 0.2em;
 }
 
 .contentTitleContainer {
