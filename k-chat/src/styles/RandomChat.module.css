@@ -228,7 +228,7 @@
   background: linear-gradient(90deg, #5b21b6 50%, #0000 0) -25% 100% / 50% 3px
     repeat-x border-box;
   position: relative;
-  animation: _l3-0_934j9_1 0.75s linear infinite;
+  animation: l3-0 0.75s linear infinite;
   margin-top: 1.25em;
 }
 .loader:before {
