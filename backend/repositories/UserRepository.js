@@ -65,6 +65,38 @@ class UserRepository {
     return user ? user.blockedUsers : [];
   }
 
+  async addFavorite(actingUserId, targetUserId) {
+    const user = await this.findById(actingUserId);
+    if (!user) throw new Error("User not found");
+
+    if (!user.favorites.includes(targetUserId)) {
+      user.favorites.push(targetUserId);
+      await user.save();
+    }
+    return user;
+  }
+
+  async removeFavorite(actingUserId, targetUserId) {
+    const user = await this.findById(actingUserId);
+    if (!user) throw new Error("User not found");
+
+    if (user.favorites.includes(targetUserId)) {
+      user.favorites = user.favorites.filter(
+        (id) => id.toString() !== targetUserId.toString(),
+      );
+      await user.save();
+    }
+    return user;
+  }
+
+  async getFavoritesDetails(userId) {
+    const user = await User.findById(userId).populate({
+      path: "favorites",
+      select: "username gender age district _id",
+    });
+    return user ? user.favorites : [];
+  }
+
   async searchUsers(query, currentUserId) {
     if (!query) return [];
 

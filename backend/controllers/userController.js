@@ -93,3 +93,83 @@ export const searchUsers = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const addFavorite = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id: targetUserId } = req.params;
+
+    if (userId === targetUserId) {
+      return res.status(400).json({ message: "You cannot favorite yourself." });
+    }
+
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const currentUser = await userRepository.findById(userId);
+
+    if (currentUser.favorites.includes(targetUserId)) {
+      return res.status(400).json({ message: "User is already favorited." });
+    }
+
+    const updatedUser = await userRepository.addFavorite(userId, targetUserId);
+
+    res.status(200).json({
+      message: "User favorited successfully.",
+      favorites: updatedUser.favorites,
+    });
+  } catch (error) {
+    console.error("Error in addFavorite:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const removeFavorite = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { id: targetUserId } = req.params;
+
+    if (userId === targetUserId) {
+      return res
+        .status(400)
+        .json({ message: "You cannot unfavorite yourself." });
+    }
+
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const currentUser = await userRepository.findById(userId);
+
+    if (!currentUser.favorites.includes(targetUserId)) {
+      return res.status(400).json({ message: "User is not favorited." });
+    }
+
+    const updatedUser = await userRepository.removeFavorite(
+      userId,
+      targetUserId,
+    );
+
+    res.status(200).json({
+      message: "User unfavorited successfully.",
+      favorites: updatedUser.favorites,
+    });
+  } catch (error) {
+    console.error("Error in removeFavorite:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getFavorites = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const favoritesDetails = await userRepository.getFavoritesDetails(userId);
+    res.status(200).json(favoritesDetails);
+  } catch (error) {
+    console.error("Error in getFavorites:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

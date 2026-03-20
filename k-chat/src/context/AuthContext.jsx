@@ -132,6 +132,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const addFavorite = async (userIdToFavorite) => {
+    try {
+      const response = await axios.post(`/users/favorite/${userIdToFavorite}`);
+      setUser((prev) => ({
+        ...prev,
+        favorites: response.data.favorites,
+      }));
+      return { success: true };
+    } catch (err) {
+      console.error(err);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to favorite user",
+      };
+    }
+  };
+
+  const removeFavorite = async (userIdToUnfavorite) => {
+    try {
+      const response = await axios.post(
+        `/users/unfavorite/${userIdToUnfavorite}`,
+      );
+      setUser((prev) => ({
+        ...prev,
+        favorites: response.data.favorites,
+      }));
+      return { success: true };
+    } catch (err) {
+      console.error(err);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to unfavorite user",
+      };
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -144,6 +180,8 @@ export const AuthProvider = ({ children }) => {
     resetPassword,
     blockUser,
     unblockUser,
+    addFavorite,
+    removeFavorite,
   };
 
   return (

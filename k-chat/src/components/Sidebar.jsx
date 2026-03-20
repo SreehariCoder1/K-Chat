@@ -34,6 +34,8 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [blockedUsersList, setBlockedUsersList] = useState([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
+  const [favoritesList, setFavoritesList] = useState([]);
+  const [loadingFavorites, setLoadingFavorites] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -229,6 +231,18 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
         .finally(() => {
           setLoadingBlocked(false);
         });
+    } else if (activeTab === "favorites") {
+      axios
+        .get("/users/favorites")
+        .then((res) => {
+          setFavoritesList(res.data);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch favorite users:", err);
+        })
+        .finally(() => {
+          setLoadingFavorites(false);
+        });
     }
   }, [activeTab]);
 
@@ -311,7 +325,13 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
             <span className={styles.tabBadge}>{totalUnreadCount}</span>
           )}
         </div>
-        <div className={styles.actionItem}>
+        <div
+          className={`${styles.actionItem} ${activeTab === "favorites" ? styles.activeAction : ""}`}
+          onClick={() => {
+            setActiveTab("favorites");
+            if (activeTab !== "favorites") setLoadingFavorites(true);
+          }}
+        >
           <Heart className={styles.icon} />
           <span>Favorites</span>
         </div>
@@ -352,7 +372,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                   ? `SEARCH RESULTS \u2014 ${searchResults.length}`
                   : activeTab === "random"
                     ? "RANDOM CHAT"
-                    : `BLOCKED \u2014 ${blockedUsersList.length}`}
+                    : activeTab === "favorites"
+                      ? `FAVORITES \u2014 ${favoritesList.length}`
+                      : `BLOCKED \u2014 ${blockedUsersList.length}`}
           </div>
           {activeTab === "online" && (
             <div
@@ -403,6 +425,8 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <div className={styles.emptyState}>Loading history...</div>
         ) : activeTab === "blocked" && loadingBlocked ? (
           <div className={styles.emptyState}>Loading blocked users...</div>
+        ) : activeTab === "favorites" && loadingFavorites ? (
+          <div className={styles.emptyState}>Loading favorite users...</div>
         ) : activeTab === "search" && isSearching ? (
           <div className={styles.emptyState}>Searching...</div>
         ) : activeTab === "search" &&
@@ -423,15 +447,19 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <div className={styles.emptyState}>No chat history yet</div>
         ) : activeTab === "blocked" && blockedUsersList.length === 0 ? (
           <div className={styles.emptyState}>No blocked users</div>
+        ) : activeTab === "favorites" && favoritesList.length === 0 ? (
+          <div className={styles.emptyState}>No favorite users</div>
         ) : (
           <div className={styles.onlineList}>
             {(activeTab === "history"
               ? historyUsers
               : activeTab === "blocked"
                 ? blockedUsersList
-                : activeTab === "search"
-                  ? searchResults
-                  : filteredOnlineUsers
+                : activeTab === "favorites"
+                  ? favoritesList
+                  : activeTab === "search"
+                    ? searchResults
+                    : filteredOnlineUsers
             ).map((u, idx) => {
               const bgClass =
                 u.gender === "female"
@@ -453,6 +481,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                 (ou) => ou._id === u._id,
               );
               const isBlocked = user?.blockedUsers?.includes(u._id);
+              const isFavorite = user?.favorites?.includes(u._id);
 
               let displayTime = "";
               if (activeTab === "history" && u.lastMessageTime) {
@@ -520,7 +549,24 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                   </div>
                   <div className={styles.userInfo}>
                     <div>
-                      <div className={styles.userNameText}>{u.username}</div>
+                      <div className={styles.userNameText}>
+                        {u.username}
+                        {isFavorite && (
+                          <Heart
+                            size={14}
+                            color="#ef4444"
+                            fill="#ef4444"
+                            style={{
+                              marginLeft: "0.3em",
+                              display: "inline-block",
+                              verticalAlign: "middle",
+                              marginBottom: "0.15em",
+                              width: "0.9rem",
+                              height: "0.9rem",
+                            }}
+                          />
+                        )}
+                      </div>
                       <div className={styles.userDetails}>
                         {u.age} Yrs, {u.district}, Kerala
                       </div>

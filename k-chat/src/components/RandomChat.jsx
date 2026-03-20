@@ -7,6 +7,7 @@ import {
   UserCircle,
   Ban,
   MoreHorizontal,
+  Heart,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
@@ -211,6 +212,7 @@ const RandomChat = ({
                 ? UserCircle
                 : UserIcon;
           const isBlocked = user?.blockedUsers?.includes(u._id);
+          const isFavorite = user?.favorites?.includes(u._id);
           return (
             <div className={styles.matchedWrapper}>
               <div
@@ -239,7 +241,24 @@ const RandomChat = ({
                   />
                 </div>
                 <div className={sidebarStyles.userInfo}>
-                  <div className={sidebarStyles.userNameText}>{u.username}</div>
+                  <div className={sidebarStyles.userNameText}>
+                    {u.username}
+                    {isFavorite && (
+                      <Heart
+                        size={14}
+                        color="#ef4444"
+                        fill="#ef4444"
+                        style={{
+                          marginLeft: "0.3em",
+                          display: "inline-block",
+                          verticalAlign: "middle",
+                          marginBottom: "0.15em",
+                          width: "0.9rem",
+                          height: "0.9rem",
+                        }}
+                      />
+                    )}
+                  </div>
                   <div className={sidebarStyles.userDetails}>
                     {u.age} Yrs, {u.district}, Kerala
                   </div>

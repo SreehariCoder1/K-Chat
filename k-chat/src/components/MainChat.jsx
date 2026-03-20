@@ -17,6 +17,7 @@ import {
   ChevronDown,
   Sticker,
   Sparkles,
+  Heart,
 } from "lucide-react";
 import axios from "axios";
 import { AuthContext } from "../context/AuthContext";
@@ -83,7 +84,8 @@ const EFFECTS_CONFIG = [
 const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const { user, unblockUser } = useContext(AuthContext);
+  const { user, unblockUser, addFavorite, removeFavorite } =
+    useContext(AuthContext);
   const { socket } = useContext(SocketContext);
   const [floatingDate, setFloatingDate] = useState("");
   const [isScrolling, setIsScrolling] = useState(false);
@@ -614,7 +616,37 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       )}
 
       <div className={styles.chatHeader}>
-        <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
+        <div className={styles.headerTitleContainer}>
+          <h3 className={styles.chatHeaderTitle}>{selectedUser.username}</h3>
+          {user?.favorites?.includes(selectedUser._id) ? (
+            <Heart
+              size={20}
+              color="#ef4444"
+              fill="#ef4444"
+              style={{
+                cursor: "pointer",
+                marginTop: "0.1em",
+                width: "1rem",
+                height: "1rem",
+              }}
+              onClick={() => removeFavorite(selectedUser._id)}
+              title="Remove from favorites"
+            />
+          ) : (
+            <Heart
+              size={20}
+              color="#ef4444"
+              style={{
+                cursor: "pointer",
+                marginTop: "0.1em",
+                width: "1rem",
+                height: "1rem",
+              }}
+              onClick={() => addFavorite(selectedUser._id)}
+              title="Add to favorites"
+            />
+          )}
+        </div>
 
         <div className={styles.headerRightControls}>
           <MessageSearch

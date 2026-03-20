@@ -159,6 +159,7 @@ export const login = async (req, res) => {
         email: user.email,
         district: user.district,
         blockedUsers: user.blockedUsers || [],
+        favorites: user.favorites || [],
       },
     });
   } catch (error) {
@@ -197,6 +198,7 @@ export const checkAuth = async (req, res) => {
         email: user.email,
         district: user.district,
         blockedUsers: user.blockedUsers || [],
+        favorites: user.favorites || [],
       },
     });
   } catch (error) {

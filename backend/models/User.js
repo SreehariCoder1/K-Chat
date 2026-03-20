@@ -62,6 +62,12 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    favorites: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   { timestamps: true },
 );
