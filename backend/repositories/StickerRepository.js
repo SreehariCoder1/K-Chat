@@ -25,7 +25,9 @@ class StickerRepository {
   }
 
   async updateSticker(id, updateData) {
-    return await Sticker.findByIdAndUpdate(id, updateData, { new: true });
+    return await Sticker.findByIdAndUpdate(id, updateData, {
+      returnDocument: "after",
+    });
   }
 
   async deleteSticker(id) {

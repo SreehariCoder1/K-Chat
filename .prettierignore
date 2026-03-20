@@ -14,10 +14,12 @@ pnpm-lock.yaml
 .DS_Store
 Thumbs.db
 
-# .prettierignore
 # Ignore image assets that Prettier can’t parse
 k-chat/public/images/*.svg
 k-chat/public/images/*.png
 k-chat/public/images/*.jpg
 k-chat/public/images/*.jpeg
 k-chat/public/images/*.gif
+
+# Ignore audio files
+k-chat/public/assets/*.mp3

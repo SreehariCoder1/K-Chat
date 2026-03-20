@@ -207,13 +207,21 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         try {
           const res = await axios.get(`/messages/${selectedUser._id}`);
           setMessages(res.data);
+
+          if (isChatVisibleRef.current && socket) {
+            const userId = user.id || user._id;
+            socket.emit("markMessagesRead", {
+              senderId: selectedUser._id,
+              receiverId: userId,
+            });
+          }
         } catch (error) {
           console.error("Failed to fetch messages", error);
         }
       };
       fetchMessages();
     }
-  }, [selectedUser]);
+  }, [selectedUser, socket, user]);
 
   useEffect(() => {
     if (!socket) return;
@@ -227,6 +235,14 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
         setMessages((prev) => [...prev, message]);
         if (message.senderId === selectedUser._id) {
           setIsTyping(false);
+
+          if (isChatVisibleRef.current && socket) {
+            const userId = user.id || user._id;
+            socket.emit("markMessagesRead", {
+              senderId: selectedUser._id,
+              receiverId: userId,
+            });
+          }
         }
       }
     };
@@ -267,6 +283,26 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
       }
     };
 
+    const handleReconnect = async () => {
+      if (selectedUser) {
+        try {
+          const res = await axios.get(`/messages/${selectedUser._id}`);
+          setMessages(res.data);
+
+          if (isChatVisibleRef.current) {
+            const userId = user.id || user._id;
+            socket.emit("markMessagesRead", {
+              senderId: selectedUser._id,
+              receiverId: userId,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to fetch messages on reconnect", error);
+        }
+      }
+    };
+
+    socket.on("connect", handleReconnect);
     socket.on("receiveMessage", handleReceiveMessage);
     socket.on("messageDeleted", handleMessageDeleted);
     socket.on("typing", handleTypingEvent);
@@ -274,6 +310,7 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
     socket.on("playEffect", handlePlayEffectEvent);
 
     return () => {
+      socket.off("connect", handleReconnect);
       socket.off("receiveMessage", handleReceiveMessage);
       socket.off("messageDeleted", handleMessageDeleted);
       socket.off("typing", handleTypingEvent);

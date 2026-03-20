@@ -50,6 +50,20 @@ class MessageRepository {
             ],
           },
           lastMessageTime: { $first: "$createdAt" },
+          unreadCount: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    { $eq: ["$receiverId", objectId] },
+                    { $eq: ["$isRead", false] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
         },
       },
       {
@@ -74,6 +88,7 @@ class MessageRepository {
           age: "$userDetails.age",
           district: "$userDetails.district",
           lastMessageTime: 1,
+          unreadCount: 1,
         },
       },
     ]);
@@ -87,7 +102,7 @@ class MessageRepository {
 
   async updateMessage(messageId, updateData) {
     return await Message.findByIdAndUpdate(messageId, updateData, {
-      new: true,
+      returnDocument: "after",
     });
   }
 
@@ -107,6 +122,13 @@ class MessageRepository {
         { senderId: userId2, receiverId: userId1 },
       ],
     });
+  }
+
+  async markMessagesAsRead(senderId, receiverId) {
+    return await Message.updateMany(
+      { senderId, receiverId, isRead: false },
+      { $set: { isRead: true } },
+    );
   }
 }
 

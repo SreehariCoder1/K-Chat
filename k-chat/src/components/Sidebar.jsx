@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import styles from "../styles/Sidebar.module.css";
 import typingStyles from "../styles/typingIndicator.module.css";
@@ -22,6 +22,7 @@ import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
 import OnlineFilter from "./OnlineFilter";
 import RandomChat from "./RandomChat";
+import { playNotificationSound } from "../utils/notificationSound";
 
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout, blockUser, unblockUser } = useContext(AuthContext);
@@ -29,6 +30,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [activeTab, setActiveTab] = useState("online");
   const [historyUsers, setHistoryUsers] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [blockedUsersList, setBlockedUsersList] = useState([]);
   const [loadingBlocked, setLoadingBlocked] = useState(false);
@@ -70,16 +72,25 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
     return true;
   });
 
-  const fetchHistory = () => {
+  const fetchHistory = useCallback(() => {
     axios
       .get("/messages/history")
       .then((res) => {
         setHistoryUsers(res.data);
+        setUnreadCounts((prev) => {
+          const uc = { ...prev };
+          res.data.forEach((u) => {
+            if (u.unreadCount !== undefined) {
+              uc[u._id] = u.unreadCount;
+            }
+          });
+          return uc;
+        });
       })
       .catch((err) => {
         console.error("Failed to fetch history:", err);
       });
-  };
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -99,6 +110,33 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
     const handleReceiveMessage = (message) => {
       if (!user) return;
       const currentUserId = user.id || user._id;
+
+      let isHidden = false;
+      if (typeof document !== "undefined" && document.hidden) {
+        isHidden = true;
+      }
+      // Check if mobile view is hiding main chat
+      const isMobile = window.matchMedia("(max-width: 501px)").matches;
+      if (isMobile && isOpen) {
+        isHidden = true; // Chat is not visible because sidebar is open on mobile
+      }
+
+      if (message.senderId !== currentUserId) {
+        const isForSelectedUser =
+          selectedUser && selectedUser._id === message.senderId;
+
+        // Increment unread count
+        if (!isForSelectedUser || isHidden) {
+          setUnreadCounts((prev) => ({
+            ...prev,
+            [message.senderId]: (prev[message.senderId] || 0) + 1,
+          }));
+
+          if (!user.blockedUsers?.includes(message.senderId)) {
+            playNotificationSound();
+          }
+        }
+      }
 
       setHistoryUsers((prev) => {
         // Find if the person you messaged/received from is already in history
@@ -132,18 +170,30 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
       handleReceiveMessage(e.detail);
     };
 
+    const handleMessagesRead = ({ senderId }) => {
+      setUnreadCounts((prev) => {
+        const next = { ...prev };
+        delete next[senderId];
+        return next;
+      });
+    };
+
+    socket.on("connect", fetchHistory);
     socket.on("typing", handleTyping);
     socket.on("stopTyping", handleStopTyping);
     socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("messagesRead", handleMessagesRead);
     window.addEventListener("localMessageSent", handleLocalMessageSent);
 
     return () => {
+      socket.off("connect", fetchHistory);
       socket.off("typing", handleTyping);
       socket.off("stopTyping", handleStopTyping);
       socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("messagesRead", handleMessagesRead);
       window.removeEventListener("localMessageSent", handleLocalMessageSent);
     };
-  }, [socket, user]);
+  }, [socket, user, selectedUser, isOpen, unreadCounts, fetchHistory]);
 
   useEffect(() => {
     if (activeTab === "history") {
@@ -151,6 +201,15 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
         .get("/messages/history")
         .then((res) => {
           setHistoryUsers(res.data);
+          setUnreadCounts((prev) => {
+            const uc = { ...prev };
+            res.data.forEach((u) => {
+              if (u.unreadCount !== undefined) {
+                uc[u._id] = u.unreadCount;
+              }
+            });
+            return uc;
+          });
         })
         .catch((err) => {
           console.error("Failed to fetch history:", err);
@@ -200,6 +259,16 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
     };
   }, [searchQuery, activeTab]);
 
+  const totalUnreadCount = Object.keys(unreadCounts).reduce(
+    (acc, currentId) => {
+      if (!user?.blockedUsers?.includes(currentId)) {
+        return acc + (unreadCounts[currentId] || 0);
+      }
+      return acc;
+    },
+    0,
+  );
+
   return (
     <div className={`${styles.sidebar} ${isOpen ? "" : styles.sidebarClosed}`}>
       <div className={styles.header}>
@@ -238,6 +307,9 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
         >
           <List className={styles.icon} />
           <span>History</span>
+          {totalUnreadCount > 0 && (
+            <span className={styles.tabBadge}>{totalUnreadCount}</span>
+          )}
         </div>
         <div className={styles.actionItem}>
           <Heart className={styles.icon} />
@@ -457,6 +529,13 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                       <div className={styles.time}>{displayTime}</div>
                     )}
                   </div>
+
+                  {unreadCounts[u._id] > 0 && !isBlocked && (
+                    <div className={styles.unreadBadge}>
+                      {unreadCounts[u._id]}
+                    </div>
+                  )}
+
                   <button
                     className={styles.moreIconBtn}
                     onClick={(e) => {

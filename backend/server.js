@@ -44,7 +44,7 @@ const io = new Server(server, {
 });
 
 const onlineUsers = new Map();
-const userSocketMap = new Map();
+const userSocketMap = new Map(); // Map<UserId, Set<SocketId>>
 
 // ── Random Chat Data Structures ──────────────────────────
 const waitingPool = new Map();
@@ -113,9 +113,11 @@ setInterval(
         randomPairs.delete(userId);
         if (partnerId && randomPairs.has(partnerId)) {
           randomPairs.delete(partnerId);
-          const partnerSocketId = userSocketMap.get(partnerId);
-          if (partnerSocketId) {
-            io.to(partnerSocketId).emit("randomPartnerLeft");
+          const partnerSockets = userSocketMap.get(partnerId);
+          if (partnerSockets) {
+            for (const sid of partnerSockets) {
+              io.to(sid).emit("randomPartnerLeft");
+            }
           }
         }
       }
@@ -141,7 +143,11 @@ io.on("connection", (socket) => {
           }
 
           onlineUsers.set(socket.id, user);
-          userSocketMap.set(userId, socket.id);
+
+          if (!userSocketMap.has(userId)) {
+            userSocketMap.set(userId, new Set());
+          }
+          userSocketMap.get(userId).add(socket.id);
 
           const allUsers = Array.from(onlineUsers.values());
           const uniqueUsers = Array.from(
@@ -223,9 +229,11 @@ io.on("connection", (socket) => {
         );
 
         // Real-time emit to receiver if online and not blocked
-        const receiverSocketId = userSocketMap.get(receiverId);
-        if (receiverSocketId && !isBlocked) {
-          io.to(receiverSocketId).emit("receiveMessage", savedMessage);
+        const receiverSockets = userSocketMap.get(receiverId);
+        if (receiverSockets && !isBlocked) {
+          for (const sid of receiverSockets) {
+            io.to(sid).emit("receiveMessage", savedMessage);
+          }
         }
 
         // Return the saved message to the sender so they get the real DB _id
@@ -242,8 +250,8 @@ io.on("connection", (socket) => {
   );
 
   socket.on("typing", async ({ senderId, receiverId }) => {
-    const receiverSocketId = userSocketMap.get(receiverId);
-    if (receiverSocketId) {
+    const receiverSockets = userSocketMap.get(receiverId);
+    if (receiverSockets) {
       const receiver = await User.findById(receiverId).select("blockedUsers");
       if (
         receiver &&
@@ -252,13 +260,15 @@ io.on("connection", (socket) => {
       ) {
         return;
       }
-      io.to(receiverSocketId).emit("typing", { senderId });
+      for (const sid of receiverSockets) {
+        io.to(sid).emit("typing", { senderId });
+      }
     }
   });
 
   socket.on("stopTyping", async ({ senderId, receiverId }) => {
-    const receiverSocketId = userSocketMap.get(receiverId);
-    if (receiverSocketId) {
+    const receiverSockets = userSocketMap.get(receiverId);
+    if (receiverSockets) {
       const receiver = await User.findById(receiverId).select("blockedUsers");
       if (
         receiver &&
@@ -267,7 +277,23 @@ io.on("connection", (socket) => {
       ) {
         return;
       }
-      io.to(receiverSocketId).emit("stopTyping", { senderId });
+      for (const sid of receiverSockets) {
+        io.to(sid).emit("stopTyping", { senderId });
+      }
+    }
+  });
+
+  socket.on("markMessagesRead", async ({ senderId, receiverId }) => {
+    try {
+      await MessageRepository.markMessagesAsRead(senderId, receiverId);
+      const currentUserSockets = userSocketMap.get(receiverId);
+      if (currentUserSockets) {
+        for (const sid of currentUserSockets) {
+          io.to(sid).emit("messagesRead", { senderId });
+        }
+      }
+    } catch (err) {
+      console.error("Socket error on markMessagesRead:", err);
     }
   });
 
@@ -275,9 +301,9 @@ io.on("connection", (socket) => {
   // Emits to both the receiver AND echoes back to the sender so both
   // chatting users see the animation at the same time.
   socket.on("playEffect", async ({ senderId, receiverId, effectType }) => {
-    const receiverSocketId = userSocketMap.get(receiverId);
+    const receiverSockets = userSocketMap.get(receiverId);
     let isBlocked = false;
-    if (receiverSocketId) {
+    if (receiverSockets) {
       const receiver = await User.findById(receiverId).select("blockedUsers");
       if (
         receiver &&
@@ -287,8 +313,10 @@ io.on("connection", (socket) => {
         isBlocked = true;
       }
     }
-    if (receiverSocketId && !isBlocked) {
-      io.to(receiverSocketId).emit("playEffect", { senderId, effectType });
+    if (receiverSockets && !isBlocked) {
+      for (const sid of receiverSockets) {
+        io.to(sid).emit("playEffect", { senderId, effectType });
+      }
     }
     // Echo back to sender so they also see the animation
     socket.emit("playEffect", { senderId, effectType });
@@ -322,11 +350,13 @@ io.on("connection", (socket) => {
         );
 
         // Broadcast to receiver if online
-        const receiverSocketId = userSocketMap.get(
+        const receiverSockets = userSocketMap.get(
           message.receiverId.toString(),
         );
-        if (receiverSocketId) {
-          io.to(receiverSocketId).emit("messageDeleted", updatedMessage);
+        if (receiverSockets) {
+          for (const sid of receiverSockets) {
+            io.to(sid).emit("messageDeleted", updatedMessage);
+          }
         }
 
         // emit back to sender to update their UI definitively
@@ -418,9 +448,11 @@ io.on("connection", (socket) => {
       const myInfo = buildUserInfo(user);
 
       socket.emit("randomMatched", { partner: partnerEntry.userInfo });
-      const partnerSocketId = userSocketMap.get(partnerId);
-      if (partnerSocketId) {
-        io.to(partnerSocketId).emit("randomMatched", { partner: myInfo });
+      const partnerSockets = userSocketMap.get(partnerId);
+      if (partnerSockets) {
+        for (const sid of partnerSockets) {
+          io.to(sid).emit("randomMatched", { partner: myInfo });
+        }
       }
     } else {
       // No valid match — add to waiting pool
@@ -444,9 +476,11 @@ io.on("connection", (socket) => {
       const partnerId = randomPairs.get(userId);
       randomPairs.delete(userId);
       randomPairs.delete(partnerId);
-      const partnerSocketId = userSocketMap.get(partnerId);
-      if (partnerSocketId) {
-        io.to(partnerSocketId).emit("randomPartnerLeft");
+      const partnerSockets = userSocketMap.get(partnerId);
+      if (partnerSockets) {
+        for (const sid of partnerSockets) {
+          io.to(sid).emit("randomPartnerLeft");
+        }
       }
     }
   });
@@ -464,7 +498,13 @@ io.on("connection", (socket) => {
     const userId = user._id.toString();
 
     onlineUsers.delete(socket.id);
-    userSocketMap.delete(userId);
+
+    if (userSocketMap.has(userId)) {
+      userSocketMap.get(userId).delete(socket.id);
+      if (userSocketMap.get(userId).size === 0) {
+        userSocketMap.delete(userId);
+      }
+    }
 
     const allUsers = Array.from(onlineUsers.values());
     const uniqueUsers = Array.from(
@@ -486,9 +526,11 @@ io.on("connection", (socket) => {
           const partnerId = randomPairs.get(userId);
           randomPairs.delete(userId);
           randomPairs.delete(partnerId);
-          const partnerSocketId = userSocketMap.get(partnerId);
-          if (partnerSocketId) {
-            io.to(partnerSocketId).emit("randomPartnerLeft");
+          const partnerSockets = userSocketMap.get(partnerId);
+          if (partnerSockets) {
+            for (const sid of partnerSockets) {
+              io.to(sid).emit("randomPartnerLeft");
+            }
           }
         }
       }, 5000);

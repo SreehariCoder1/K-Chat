@@ -103,6 +103,24 @@
   height: 1.7em;
 }
 
+/* badge for unread messages */
+.tabBadge {
+  position: absolute;
+  top: -0.4em;
+  right: 0;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.1em 0.4em;
+  border-radius: 1em;
+  min-width: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;
@@ -291,6 +309,25 @@
   font-weight: 500;
   white-space: nowrap;
   margin-left: 0.5em;
+}
+
+/* badge for unread messages */
+.unreadBadge {
+  position: absolute;
+  bottom: 0.2em;
+  left: 0.2em;
+  background-color: #ef4444;
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 500;
+  padding: 0.15em 0.4em;
+  border-radius: 1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5em;
+  z-index: 2;
+  border: 0.15em solid white;
 }
 
 .footer {

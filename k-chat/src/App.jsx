@@ -6,13 +6,14 @@ import {
 } from "react-router-dom";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
-import { useContext } from "react";
+import { useEffect, useContext } from "react";
 import ChatLayout from "./components/ChatLayout";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import VerifyEmail from "./components/VerifyEmail";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./components/ResetPassword";
+import { initAudioUnlocker } from "./utils/notificationSound";
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children }) => {
@@ -35,6 +36,10 @@ const AuthRoute = ({ children }) => {
 };
 
 const App = () => {
+  useEffect(() => {
+    initAudioUnlocker();
+  }, []);
+
   return (
     <AuthProvider>
       <SocketProvider>
