@@ -229,13 +229,19 @@
 }
 .onlineIndicator {
   position: absolute;
-  bottom: 0.5em;
-  left: 2.5em;
+  bottom: 0.1em;
+  right: 0.1em;
   width: 0.75em;
   height: 0.75em;
   border-radius: 50%;
   border: 0.15em solid rgb(255, 255, 255);
   z-index: 2;
+}
+
+.avatarContainer {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
 }
 
 .maleBg {
@@ -314,8 +320,8 @@
 /* badge for unread messages */
 .unreadBadge {
   position: absolute;
-  bottom: 0.2em;
-  left: 0.2em;
+  bottom: -0.2em;
+  left: -0.2em;
   background-color: #ef4444;
   color: white;
   font-size: 0.65rem;
@@ -387,8 +393,8 @@
   justify-content: center;
   align-items: center;
   position: absolute;
-  top: 0.31em;
-  left: 0.31em;
+  top: -0.2em;
+  left: -0.2em;
   z-index: 2;
   background-color: rgba(255, 255, 255, 0.7);
   border-radius: 50%;

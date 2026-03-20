@@ -510,15 +510,41 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                     position: "relative",
                   }}
                 >
-                  {activeTab === "history" && (
-                    <div
-                      className={styles.onlineIndicator}
-                      style={{
-                        backgroundColor: isUserOnline ? "#4ade80" : "#9ca3af",
-                      }}
-                      title={isUserOnline ? "Online" : "Offline"}
-                    />
-                  )}
+                  <div className={styles.avatarContainer}>
+                    {activeTab === "history" && (
+                      <div
+                        className={styles.onlineIndicator}
+                        style={{
+                          backgroundColor: isUserOnline ? "#4ade80" : "#9ca3af",
+                        }}
+                        title={isUserOnline ? "Online" : "Offline"}
+                      />
+                    )}
+                    {isBlocked && (
+                      <div
+                        className={styles.blockedIndicator}
+                        title="Blocked User"
+                      >
+                        <Ban
+                          className={styles.blockIcon}
+                          size={16}
+                          color="#ef4444"
+                        />
+                      </div>
+                    )}
+                    <div className={styles.userIconWrapper}>
+                      <AvatarIcon
+                        className={styles.userIconSolid}
+                        fill="currentColor"
+                      />
+                    </div>
+                    {unreadCounts[u._id] > 0 && !isBlocked && (
+                      <div className={styles.unreadBadge}>
+                        {unreadCounts[u._id]}
+                      </div>
+                    )}
+                  </div>
+
                   {isTyping && (
                     <div
                       className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
@@ -529,24 +555,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                       <span className={typingStyles.dot}></span>
                     </div>
                   )}
-                  {isBlocked && (
-                    <div
-                      className={styles.blockedIndicator}
-                      title="Blocked User"
-                    >
-                      <Ban
-                        className={styles.blockIcon}
-                        size={16}
-                        color="#ef4444"
-                      />
-                    </div>
-                  )}
-                  <div className={styles.userIconWrapper}>
-                    <AvatarIcon
-                      className={styles.userIconSolid}
-                      fill="currentColor"
-                    />
-                  </div>
+
                   <div className={styles.userInfo}>
                     <div>
                       <div className={styles.userNameText}>
@@ -575,12 +584,6 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
                       <div className={styles.time}>{displayTime}</div>
                     )}
                   </div>
-
-                  {unreadCounts[u._id] > 0 && !isBlocked && (
-                    <div className={styles.unreadBadge}>
-                      {unreadCounts[u._id]}
-                    </div>
-                  )}
 
                   <button
                     className={styles.moreIconBtn}
