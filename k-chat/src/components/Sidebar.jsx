@@ -54,6 +54,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [mainTab, setMainTab] = useState("chat");
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -320,373 +321,393 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
       </div>
 
       <div className={styles.tabs}>
-        <div className={`${styles.tab} ${styles.active}`}>1 on 1 Chat</div>
-        <div className={styles.tab}>Rooms</div>
-      </div>
-
-      <div className={styles.actions}>
         <div
-          className={`${styles.actionItem} ${activeTab === "online" ? styles.activeAction : ""}`}
-          onClick={() => setActiveTab("online")}
+          className={`${styles.tab} ${mainTab === "chat" ? styles.active : ""}`}
+          onClick={() => setMainTab("chat")}
         >
-          <User className={styles.icon} />
-          <span>Online</span>
+          1 on 1 Chat
         </div>
         <div
-          className={`${styles.actionItem} ${activeTab === "history" ? styles.activeAction : ""}`}
-          onClick={() => {
-            setActiveTab("history");
-            if (activeTab !== "history") setLoadingHistory(true);
-          }}
+          className={`${styles.tab} ${mainTab === "rooms" ? styles.active : ""}`}
+          onClick={() => setMainTab("rooms")}
         >
-          <List className={styles.icon} />
-          <span>History</span>
-          {totalUnreadCount > 0 && (
-            <span className={styles.tabBadge}>{totalUnreadCount}</span>
-          )}
-        </div>
-        <div
-          className={`${styles.actionItem} ${activeTab === "favorites" ? styles.activeAction : ""}`}
-          onClick={() => {
-            setActiveTab("favorites");
-            if (activeTab !== "favorites") setLoadingFavorites(true);
-          }}
-        >
-          <Heart className={styles.icon} />
-          <span>Favorites</span>
-        </div>
-        <div
-          className={`${styles.actionItem} ${activeTab === "search" ? styles.activeAction : ""}`}
-          onClick={() => setActiveTab("search")}
-        >
-          <Search className={styles.icon} />
-          <span>Search</span>
-        </div>
-        <div
-          className={`${styles.actionItem} ${activeTab === "random" ? styles.activeAction : ""}`}
-          onClick={() => setActiveTab("random")}
-        >
-          <Dices className={styles.icon} />
-          <span>Random</span>
-        </div>
-        <div
-          className={`${styles.actionItem} ${activeTab === "blocked" ? styles.activeAction : ""}`}
-          onClick={() => {
-            setActiveTab("blocked");
-            if (activeTab !== "blocked") setLoadingBlocked(true);
-          }}
-        >
-          <Ban className={styles.icon} />
-          <span>Blocked</span>
+          Rooms
         </div>
       </div>
 
-      <div className={styles.content}>
-        <div className={styles.contentTitleContainer}>
-          <div className={styles.contentTitle}>
-            {activeTab === "online"
-              ? `ONLINE \u2014 ${filteredOnlineUsers.length}`
-              : activeTab === "history"
-                ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
-                : activeTab === "search"
-                  ? `SEARCH RESULTS \u2014 ${searchResults.length}`
-                  : activeTab === "random"
-                    ? "RANDOM CHAT"
-                    : activeTab === "favorites"
-                      ? `FAVORITES \u2014 ${favoritesList.length}`
-                      : `BLOCKED \u2014 ${blockedUsersList.length}`}
-          </div>
-          {activeTab === "online" && (
+      {mainTab === "rooms" ? (
+        <div className={styles.content}>
+          <div className={styles.emptyState}>Coming soon…</div>
+        </div>
+      ) : (
+        <>
+          <div className={styles.actions}>
             <div
-              className={`${styles.filterHeaderIcon} ${showFilters ? styles.filterHeaderIconActive : ""}`}
-              onClick={() => setShowFilters(!showFilters)}
-              title="Filter Online Users"
+              className={`${styles.actionItem} ${activeTab === "online" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("online")}
             >
-              <Filter className={styles.filterIcon} size={16} />
+              <User className={styles.icon} />
+              <span>Online</span>
             </div>
-          )}
-        </div>
-
-        {activeTab === "online" && showFilters && (
-          <OnlineFilter filters={filters} setFilters={setFilters} />
-        )}
-
-        {activeTab === "search" && (
-          <div className={styles.searchContainer}>
-            <input
-              type="text"
-              placeholder="Search by username, gender, district, age..."
-              value={searchQuery}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSearchQuery(val);
-                if (val.trim() !== "") {
-                  setIsSearching(true);
-                } else {
-                  setIsSearching(false);
-                  setSearchResults([]);
-                }
+            <div
+              className={`${styles.actionItem} ${activeTab === "history" ? styles.activeAction : ""}`}
+              onClick={() => {
+                setActiveTab("history");
+                if (activeTab !== "history") setLoadingHistory(true);
               }}
-              className={styles.searchInput}
-            />
+            >
+              <List className={styles.icon} />
+              <span>History</span>
+              {totalUnreadCount > 0 && (
+                <span className={styles.tabBadge}>{totalUnreadCount}</span>
+              )}
+            </div>
+            <div
+              className={`${styles.actionItem} ${activeTab === "favorites" ? styles.activeAction : ""}`}
+              onClick={() => {
+                setActiveTab("favorites");
+                if (activeTab !== "favorites") setLoadingFavorites(true);
+              }}
+            >
+              <Heart className={styles.icon} />
+              <span>Favorites</span>
+            </div>
+            <div
+              className={`${styles.actionItem} ${activeTab === "search" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("search")}
+            >
+              <Search className={styles.icon} />
+              <span>Search</span>
+            </div>
+            <div
+              className={`${styles.actionItem} ${activeTab === "random" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("random")}
+            >
+              <Dices className={styles.icon} />
+              <span>Random</span>
+            </div>
+            <div
+              className={`${styles.actionItem} ${activeTab === "blocked" ? styles.activeAction : ""}`}
+              onClick={() => {
+                setActiveTab("blocked");
+                if (activeTab !== "blocked") setLoadingBlocked(true);
+              }}
+            >
+              <Ban className={styles.icon} />
+              <span>Blocked</span>
+            </div>
           </div>
-        )}
 
-        <RandomChat
-          selectedUser={selectedUser}
-          setSelectedUser={setSelectedUser}
-          toggleSidebar={toggleSidebar}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-        />
-
-        {activeTab === "random" ? null : activeTab === "history" &&
-          loadingHistory ? (
-          <div className={styles.emptyState}>Loading history...</div>
-        ) : activeTab === "blocked" && loadingBlocked ? (
-          <div className={styles.emptyState}>Loading blocked users...</div>
-        ) : activeTab === "favorites" && loadingFavorites ? (
-          <div className={styles.emptyState}>Loading favorite users...</div>
-        ) : activeTab === "search" && isSearching ? (
-          <div className={styles.emptyState}>Searching...</div>
-        ) : activeTab === "search" &&
-          searchQuery.trim() !== "" &&
-          searchResults.length === 0 ? (
-          <div className={styles.emptyState}>No users found</div>
-        ) : activeTab === "search" && searchQuery.trim() === "" ? (
-          <div className={styles.emptyState}>
-            Type to search for users globally
-          </div>
-        ) : activeTab === "online" && filteredOnlineUsers.length === 0 ? (
-          <div className={styles.emptyState}>
-            {otherOnlineUsers.length === 0
-              ? "No one online right now"
-              : "No users match your filters"}
-          </div>
-        ) : activeTab === "history" && historyUsers.length === 0 ? (
-          <div className={styles.emptyState}>No chat history yet</div>
-        ) : activeTab === "blocked" && blockedUsersList.length === 0 ? (
-          <div className={styles.emptyState}>No blocked users</div>
-        ) : activeTab === "favorites" && favoritesList.length === 0 ? (
-          <div className={styles.emptyState}>No favorite users</div>
-        ) : (
-          <div className={styles.onlineList}>
-            {(activeTab === "history"
-              ? historyUsers
-              : activeTab === "blocked"
-                ? blockedUsersList
-                : activeTab === "favorites"
-                  ? favoritesList
-                  : activeTab === "search"
-                    ? searchResults
-                    : filteredOnlineUsers
-            ).map((u, idx) => {
-              const bgClass =
-                u.gender === "female"
-                  ? styles.femaleBg
-                  : u.gender === "other"
-                    ? styles.otherBg
-                    : styles.maleBg;
-
-              const AvatarIcon =
-                u.gender === "female"
-                  ? UserRound
-                  : u.gender === "other"
-                    ? UserCircle
-                    : UserIcon;
-
-              const isSelected = selectedUser?._id === u._id;
-              const isTyping = typingUsers.has(u._id);
-              const isUserOnline = otherOnlineUsers.some(
-                (ou) => ou._id === u._id,
-              );
-              const isBlocked = user?.blockedUsers?.includes(u._id);
-              const isFavorite = user?.favorites?.includes(u._id);
-
-              let displayTime = "";
-              if (activeTab === "history" && u.lastMessageTime) {
-                const dateLabel = formatDateLabel(u.lastMessageTime);
-                if (dateLabel === "Today") {
-                  displayTime = formatTime(u.lastMessageTime);
-                } else {
-                  displayTime = dateLabel;
-                }
-              }
-
-              return (
+          <div className={styles.content}>
+            <div className={styles.contentTitleContainer}>
+              <div className={styles.contentTitle}>
+                {activeTab === "online"
+                  ? `ONLINE \u2014 ${filteredOnlineUsers.length}`
+                  : activeTab === "history"
+                    ? `ONLINE \u2014 ${historyUsers.filter((hu) => otherOnlineUsers.some((ou) => ou._id === hu._id)).length}`
+                    : activeTab === "search"
+                      ? `SEARCH RESULTS \u2014 ${searchResults.length}`
+                      : activeTab === "random"
+                        ? "RANDOM CHAT"
+                        : activeTab === "favorites"
+                          ? `FAVORITES \u2014 ${favoritesList.length}`
+                          : `BLOCKED \u2014 ${blockedUsersList.length}`}
+              </div>
+              {activeTab === "online" && (
                 <div
-                  key={`${u._id}-${idx}`}
-                  className={`${styles.onlineUserRow} ${bgClass}`}
-                  onClick={() => {
-                    setSelectedUser(u);
-                    if (window.innerWidth <= 500) {
-                      toggleSidebar();
+                  className={`${styles.filterHeaderIcon} ${showFilters ? styles.filterHeaderIconActive : ""}`}
+                  onClick={() => setShowFilters(!showFilters)}
+                  title="Filter Online Users"
+                >
+                  <Filter className={styles.filterIcon} size={16} />
+                </div>
+              )}
+            </div>
+
+            {activeTab === "online" && showFilters && (
+              <OnlineFilter filters={filters} setFilters={setFilters} />
+            )}
+
+            {activeTab === "search" && (
+              <div className={styles.searchContainer}>
+                <input
+                  type="text"
+                  placeholder="Search by username, gender, district, age..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSearchQuery(val);
+                    if (val.trim() !== "") {
+                      setIsSearching(true);
+                    } else {
+                      setIsSearching(false);
+                      setSearchResults([]);
                     }
                   }}
-                  style={{
-                    border: isSelected
-                      ? "2px solid #fff"
-                      : "2px solid transparent",
-                    position: "relative",
-                  }}
-                >
-                  <div className={styles.avatarContainer}>
-                    {activeTab === "history" && (
-                      <div
-                        className={styles.onlineIndicator}
-                        style={{
-                          backgroundColor: isUserOnline ? "#4ade80" : "#9ca3af",
-                        }}
-                        title={isUserOnline ? "Online" : "Offline"}
-                      />
-                    )}
-                    {isBlocked && (
-                      <div
-                        className={styles.blockedIndicator}
-                        title="Blocked User"
-                      >
-                        <Ban
-                          className={styles.blockIcon}
-                          size={16}
-                          color="#ef4444"
-                        />
-                      </div>
-                    )}
-                    <div className={styles.userIconWrapper}>
-                      <AvatarIcon
-                        className={styles.userIconSolid}
-                        fill="currentColor"
-                      />
-                    </div>
-                    {unreadCounts[u._id] > 0 && !isBlocked && (
-                      <div className={styles.unreadBadge}>
-                        {unreadCounts[u._id]}
-                      </div>
-                    )}
-                  </div>
+                  className={styles.searchInput}
+                />
+              </div>
+            )}
 
-                  {isTyping && (
+            <RandomChat
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+              toggleSidebar={toggleSidebar}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+
+            {activeTab === "random" ? null : activeTab === "history" &&
+              loadingHistory ? (
+              <div className={styles.emptyState}>Loading history...</div>
+            ) : activeTab === "blocked" && loadingBlocked ? (
+              <div className={styles.emptyState}>Loading blocked users...</div>
+            ) : activeTab === "favorites" && loadingFavorites ? (
+              <div className={styles.emptyState}>Loading favorite users...</div>
+            ) : activeTab === "search" && isSearching ? (
+              <div className={styles.emptyState}>Searching...</div>
+            ) : activeTab === "search" &&
+              searchQuery.trim() !== "" &&
+              searchResults.length === 0 ? (
+              <div className={styles.emptyState}>No users found</div>
+            ) : activeTab === "search" && searchQuery.trim() === "" ? (
+              <div className={styles.emptyState}>
+                Type to search for users globally
+              </div>
+            ) : activeTab === "online" && filteredOnlineUsers.length === 0 ? (
+              <div className={styles.emptyState}>
+                {otherOnlineUsers.length === 0
+                  ? "No one online right now"
+                  : "No users match your filters"}
+              </div>
+            ) : activeTab === "history" && historyUsers.length === 0 ? (
+              <div className={styles.emptyState}>No chat history yet</div>
+            ) : activeTab === "blocked" && blockedUsersList.length === 0 ? (
+              <div className={styles.emptyState}>No blocked users</div>
+            ) : activeTab === "favorites" && favoritesList.length === 0 ? (
+              <div className={styles.emptyState}>No favorite users</div>
+            ) : (
+              <div className={styles.onlineList}>
+                {(activeTab === "history"
+                  ? historyUsers
+                  : activeTab === "blocked"
+                    ? blockedUsersList
+                    : activeTab === "favorites"
+                      ? favoritesList
+                      : activeTab === "search"
+                        ? searchResults
+                        : filteredOnlineUsers
+                ).map((u, idx) => {
+                  const bgClass =
+                    u.gender === "female"
+                      ? styles.femaleBg
+                      : u.gender === "other"
+                        ? styles.otherBg
+                        : styles.maleBg;
+
+                  const AvatarIcon =
+                    u.gender === "female"
+                      ? UserRound
+                      : u.gender === "other"
+                        ? UserCircle
+                        : UserIcon;
+
+                  const isSelected = selectedUser?._id === u._id;
+                  const isTyping = typingUsers.has(u._id);
+                  const isUserOnline = otherOnlineUsers.some(
+                    (ou) => ou._id === u._id,
+                  );
+                  const isBlocked = user?.blockedUsers?.includes(u._id);
+                  const isFavorite = user?.favorites?.includes(u._id);
+
+                  let displayTime = "";
+                  if (activeTab === "history" && u.lastMessageTime) {
+                    const dateLabel = formatDateLabel(u.lastMessageTime);
+                    if (dateLabel === "Today") {
+                      displayTime = formatTime(u.lastMessageTime);
+                    } else {
+                      displayTime = dateLabel;
+                    }
+                  }
+
+                  return (
                     <div
-                      className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
-                      title="Typing..."
+                      key={`${u._id}-${idx}`}
+                      className={`${styles.onlineUserRow} ${bgClass}`}
+                      onClick={() => {
+                        setSelectedUser(u);
+                        if (window.innerWidth <= 500) {
+                          toggleSidebar();
+                        }
+                      }}
+                      style={{
+                        border: isSelected
+                          ? "2px solid #fff"
+                          : "2px solid transparent",
+                        position: "relative",
+                      }}
                     >
-                      <span className={typingStyles.dot}></span>
-                      <span className={typingStyles.dot}></span>
-                      <span className={typingStyles.dot}></span>
-                    </div>
-                  )}
-
-                  <div className={styles.userInfo}>
-                    <div>
-                      <div className={styles.userNameText}>
-                        {u.username}
-                        {isFavorite && (
-                          <Heart
-                            size={14}
-                            color="#ef4444"
-                            fill="#ef4444"
+                      <div className={styles.avatarContainer}>
+                        {activeTab === "history" && (
+                          <div
+                            className={styles.onlineIndicator}
                             style={{
-                              marginLeft: "0.3em",
-                              display: "inline-block",
-                              verticalAlign: "middle",
-                              marginBottom: "0.15em",
-                              width: "0.9rem",
-                              height: "0.9rem",
+                              backgroundColor: isUserOnline
+                                ? "#4ade80"
+                                : "#9ca3af",
                             }}
+                            title={isUserOnline ? "Online" : "Offline"}
                           />
                         )}
+                        {isBlocked && (
+                          <div
+                            className={styles.blockedIndicator}
+                            title="Blocked User"
+                          >
+                            <Ban
+                              className={styles.blockIcon}
+                              size={16}
+                              color="#ef4444"
+                            />
+                          </div>
+                        )}
+                        <div className={styles.userIconWrapper}>
+                          <AvatarIcon
+                            className={styles.userIconSolid}
+                            fill="currentColor"
+                          />
+                        </div>
+                        {unreadCounts[u._id] > 0 && !isBlocked && (
+                          <div className={styles.unreadBadge}>
+                            {unreadCounts[u._id]}
+                          </div>
+                        )}
                       </div>
-                      <div className={styles.userDetails}>
-                        {u.age} Yrs, {u.district}, Kerala
+
+                      {isTyping && (
+                        <div
+                          className={`${typingStyles.typingIndicator} ${typingStyles.sidebarPosition}`}
+                          title="Typing..."
+                        >
+                          <span className={typingStyles.dot}></span>
+                          <span className={typingStyles.dot}></span>
+                          <span className={typingStyles.dot}></span>
+                        </div>
+                      )}
+
+                      <div className={styles.userInfo}>
+                        <div>
+                          <div className={styles.userNameText}>
+                            {u.username}
+                            {isFavorite && (
+                              <Heart
+                                size={14}
+                                color="#ef4444"
+                                fill="#ef4444"
+                                style={{
+                                  marginLeft: "0.3em",
+                                  display: "inline-block",
+                                  verticalAlign: "middle",
+                                  marginBottom: "0.15em",
+                                  width: "0.9rem",
+                                  height: "0.9rem",
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div className={styles.userDetails}>
+                            {u.age} Yrs, {u.district}, Kerala
+                          </div>
+                        </div>
+                        {activeTab === "history" && displayTime && (
+                          <div className={styles.time}>{displayTime}</div>
+                        )}
                       </div>
-                    </div>
-                    {activeTab === "history" && displayTime && (
-                      <div className={styles.time}>{displayTime}</div>
-                    )}
-                  </div>
 
-                  <button
-                    className={styles.moreIconBtn}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setOpenDropdownId(
-                        openDropdownId === u._id ? null : u._id,
-                      );
-                    }}
-                  >
-                    <MoreHorizontal className={styles.moreIcon} size={18} />
-                  </button>
-
-                  {openDropdownId === u._id && (
-                    <div className={styles.contextMenu}>
-                      <div
-                        className={`${styles.contextMenuItem} ${isBlocked ? styles.textUnblock : styles.textBlock}`}
+                      <button
+                        className={styles.moreIconBtn}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (isBlocked) {
-                            unblockUser(u._id).then((res) => {
-                              if (
-                                res &&
-                                res.success &&
-                                activeTab === "blocked"
-                              ) {
-                                setBlockedUsersList((prev) =>
-                                  prev.filter((usr) => usr._id !== u._id),
-                                );
-                              }
-                            });
-                          } else {
-                            blockUser(u._id);
-                          }
-                          setOpenDropdownId(null);
+                          setOpenDropdownId(
+                            openDropdownId === u._id ? null : u._id,
+                          );
                         }}
                       >
-                        {isBlocked ? "Unblock" : "Block"}
-                      </div>
+                        <MoreHorizontal className={styles.moreIcon} size={18} />
+                      </button>
 
-                      {activeTab === "history" && (
-                        <div
-                          className={`${styles.contextMenuItem} ${styles.textDelete}`}
-                          style={{ color: "#ef4444" }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const confirmed = window.confirm(
-                              "Are you sure you want to delete this chat history? All messages will be permanently deleted.",
-                            );
-                            if (confirmed) {
-                              axios
-                                .delete(`/messages/history/${u._id}`)
-                                .then(() => {
-                                  setHistoryUsers((prev) =>
-                                    prev.filter((usr) => usr._id !== u._id),
-                                  );
-                                  // if the user was the selected user, un-select them
-                                  if (selectedUser?._id === u._id) {
-                                    setSelectedUser(null);
+                      {openDropdownId === u._id && (
+                        <div className={styles.contextMenu}>
+                          <div
+                            className={`${styles.contextMenuItem} ${isBlocked ? styles.textUnblock : styles.textBlock}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (isBlocked) {
+                                unblockUser(u._id).then((res) => {
+                                  if (
+                                    res &&
+                                    res.success &&
+                                    activeTab === "blocked"
+                                  ) {
+                                    setBlockedUsersList((prev) =>
+                                      prev.filter((usr) => usr._id !== u._id),
+                                    );
                                   }
-                                })
-                                .catch((err) => {
-                                  console.error(
-                                    "Failed to delete chat history:",
-                                    err,
-                                  );
-                                  alert("Failed to delete chat history.");
                                 });
-                            }
-                            setOpenDropdownId(null);
-                          }}
-                        >
-                          Delete Chat
+                              } else {
+                                blockUser(u._id);
+                              }
+                              setOpenDropdownId(null);
+                            }}
+                          >
+                            {isBlocked ? "Unblock" : "Block"}
+                          </div>
+
+                          {activeTab === "history" && (
+                            <div
+                              className={`${styles.contextMenuItem} ${styles.textDelete}`}
+                              style={{ color: "#ef4444" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const confirmed = window.confirm(
+                                  "Are you sure you want to delete this chat history? All messages will be permanently deleted.",
+                                );
+                                if (confirmed) {
+                                  axios
+                                    .delete(`/messages/history/${u._id}`)
+                                    .then(() => {
+                                      setHistoryUsers((prev) =>
+                                        prev.filter((usr) => usr._id !== u._id),
+                                      );
+                                      // if the user was the selected user, un-select them
+                                      if (selectedUser?._id === u._id) {
+                                        setSelectedUser(null);
+                                      }
+                                    })
+                                    .catch((err) => {
+                                      console.error(
+                                        "Failed to delete chat history:",
+                                        err,
+                                      );
+                                      alert("Failed to delete chat history.");
+                                    });
+                                }
+                                setOpenDropdownId(null);
+                              }}
+                            >
+                              Delete Chat
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </>
+      )}
 
       <div className={styles.footer}>
         <div className={styles.avatar}>
