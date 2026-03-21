@@ -17,9 +17,12 @@ import {
   PanelLeftClose,
   Ban,
   MoreHorizontal,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
+import { ThemeContext } from "../context/ThemeContext";
 import OnlineFilter from "./OnlineFilter";
 import RandomChat from "./RandomChat";
 import { playNotificationSound } from "../utils/notificationSound";
@@ -27,6 +30,7 @@ import { playNotificationSound } from "../utils/notificationSound";
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const { user, logout, blockUser, unblockUser } = useContext(AuthContext);
   const { onlineUsers = [], socket } = useContext(SocketContext);
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [activeTab, setActiveTab] = useState("online");
   const [historyUsers, setHistoryUsers] = useState([]);
@@ -290,13 +294,26 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           <span className={styles.treeIcon}>🌴</span>
           <span>K-Chat</span>
         </div>
-        <button
-          className={styles.toggleBtn}
-          onClick={toggleSidebar}
-          title="Close Sidebar"
-        >
-          <PanelLeftClose className={styles.toggleIcon} size={20} />
-        </button>
+        <div className={styles.headerButtons}>
+          <button
+            className={styles.toggleBtn}
+            onClick={toggleTheme}
+            title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+          >
+            {theme === "light" ? (
+              <Moon className={styles.toggleIcon} size={20} />
+            ) : (
+              <Sun className={styles.toggleIcon} size={20} />
+            )}
+          </button>
+          <button
+            className={styles.toggleBtn}
+            onClick={toggleSidebar}
+            title="Close Sidebar"
+          >
+            <PanelLeftClose className={styles.toggleIcon} size={20} />
+          </button>
+        </div>
       </div>
 
       <div className={styles.tabs}>

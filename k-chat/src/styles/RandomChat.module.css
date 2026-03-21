@@ -35,13 +35,13 @@
   position: absolute;
   width: 3.125em;
   height: 3.125em;
-  background-color: white;
+  background-color: var(--bg-primary);
   border: 1px solid rgba(124, 58, 237, 0.5);
   border-radius: 8px;
   display: flex;
   box-shadow:
     inset 0 0 12px rgba(124, 58, 237, 0.15),
-    0 0 5px rgba(0, 0, 0, 0.1);
+    0 0 5px var(--shadow-md);
   box-sizing: border-box;
 }
 
@@ -89,7 +89,7 @@
 .diceFront .dot:nth-child(1) {
   grid-column: 2;
   grid-row: 2;
-  background-color: #ef4444;
+  background-color: var(--danger-primary);
   width: 0.625em;
   height: 0.625em;
 }
@@ -195,7 +195,7 @@
 
 .idleText {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-muted);
   line-height: 1.5;
 }
 
@@ -203,7 +203,7 @@
   padding: 0.55em 1.4em;
   border-radius: 2em;
   background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-  color: white;
+  color: var(--bg-primary);
   font-weight: 600;
   font-size: 0.85rem;
   transition: opacity 0.2s;
@@ -258,7 +258,7 @@
 
 .waitingText {
   font-size: 0.88rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .countdown {
@@ -273,9 +273,9 @@
 .cancelBtn {
   padding: 0.4em 1.2em;
   border-radius: 2em;
-  border: 1.5px solid #d1d5db;
+  border: 1.5px solid var(--border-hover);
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 600;
   transition:
@@ -284,8 +284,8 @@
 }
 
 .cancelBtn:hover {
-  border-color: #ef4444;
-  color: #ef4444;
+  border-color: var(--danger-primary);
+  color: var(--danger-primary);
 }
 
 /* Matched state */
@@ -304,9 +304,9 @@
   flex: 1;
   padding: 0.5em 1em;
   border-radius: 0.5em;
-  border: 1.5px solid #ef4444;
+  border: 1.5px solid var(--danger-primary);
   background: transparent;
-  color: #ef4444;
+  color: var(--danger-primary);
   font-size: 0.82rem;
   font-weight: 600;
   transition:
@@ -315,8 +315,8 @@
 }
 
 .stopBtn:hover {
-  background-color: #ef4444;
-  color: white;
+  background-color: var(--danger-primary);
+  color: var(--bg-primary);
 }
 
 .nextBtn {
@@ -324,7 +324,7 @@
   padding: 0.5em 1em;
   border-radius: 0.5em;
   background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-  color: white;
+  color: var(--bg-primary);
   font-size: 0.82rem;
   font-weight: 600;
   transition: opacity 0.2s;

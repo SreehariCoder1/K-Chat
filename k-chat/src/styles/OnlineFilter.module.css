@@ -1,8 +1,8 @@
 .filterContainer {
   padding: 0.5em 1em;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  border-top: 1px solid #e5e7eb;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 0.5em;
@@ -18,33 +18,33 @@
 .filterSelect,
 .filterInput {
   padding: 0.4em;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-hover);
   border-radius: 0.3em;
   font-size: 0.8rem;
   flex: 1;
-  background-color: white;
-  color: #374151;
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
   min-width: 0;
 }
 
 .filterSelect:focus,
 .filterInput:focus {
   outline: none;
-  border-color: #22c55e;
-  box-shadow: 0 0 0 1px #22c55e;
+  border-color: var(--accent-secondary);
+  box-shadow: 0 0 0 1px var(--accent-secondary);
 }
 
 .clearFilterBtn {
   padding: 0.4em 0.8em;
-  background-color: #f3f4f6;
-  border: 1px solid #d1d5db;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-hover);
   border-radius: 0.3em;
   font-size: 0.8rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   transition: all 0.2s;
 }
 
 .clearFilterBtn:hover {
-  background-color: #e5e7eb;
+  background-color: var(--border-color);
   color: #1f2937;
 }

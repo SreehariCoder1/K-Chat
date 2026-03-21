@@ -1,6 +1,6 @@
 .openSearchBtn {
   background: transparent;
-  color: #6b7280;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10,17 +10,17 @@
 }
 
 .openSearchBtn:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .searchContainer {
   display: flex;
   align-items: center;
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
   border-radius: 0.5rem;
   padding: 0.2rem 0.4rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
 }
 
 .searchInput {
@@ -28,14 +28,14 @@
   border: none;
   outline: none;
   font-size: 0.85rem;
-  color: #374151;
+  color: var(--text-secondary);
   padding: 0.2rem 0.4rem;
   width: 70%;
 }
 
 .searchCount {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-muted);
   margin: 0 0.5rem;
   white-space: nowrap;
 }
@@ -63,7 +63,7 @@
 .searchNavButtons {
   display: flex;
   align-items: center;
-  border-left: 0.1rem solid #d1d5db;
+  border-left: 0.1rem solid var(--border-hover);
   padding-left: 0.3rem;
   gap: 0.1rem;
 }
@@ -71,7 +71,7 @@
 .iconBtn {
   background: transparent;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -80,8 +80,8 @@
 }
 
 .iconBtn:hover:not(:disabled) {
-  background-color: #e5e7eb;
-  color: #111827;
+  background-color: var(--border-color);
+  color: var(--text-primary);
 }
 
 .iconBtn:disabled {
@@ -94,5 +94,5 @@
 }
 
 .closeBtn:hover {
-  color: #ef4444;
+  color: var(--danger-primary);
 }

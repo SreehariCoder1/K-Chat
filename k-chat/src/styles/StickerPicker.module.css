@@ -5,8 +5,8 @@
   transform: translateX(-50%);
   width: 70%;
   height: 60vh;
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   border-bottom: none;
   border-radius: 1rem 1rem 0 0;
   display: flex;
@@ -21,8 +21,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.6rem 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-secondary);
 }
 
 .tabs {
@@ -31,7 +31,7 @@
 }
 
 .tabBtn {
-  color: #9ca3af;
+  color: var(--text-muted);
   padding: 0.45rem 0.5rem;
   border-radius: 0.5rem;
   transition:
@@ -43,8 +43,8 @@
 }
 
 .tabBtn:hover {
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .activeTab {
@@ -53,7 +53,7 @@
 }
 
 .closeBtn {
-  color: #9ca3af;
+  color: var(--text-muted);
   padding: 0.25rem;
   border-radius: 50%;
   display: flex;
@@ -66,7 +66,7 @@
 
 .closeBtn:hover {
   background-color: #fee2e2;
-  color: #ef4444;
+  color: var(--danger-primary);
 }
 
 /* ── Search Bar ───────────────────────────────────── */
@@ -75,12 +75,12 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .searchIcon {
-  color: #9ca3af;
+  color: var(--text-muted);
   width: 1.2rem;
   height: 1.2rem;
 }
@@ -89,13 +89,13 @@
   flex: 1;
   background: transparent;
   border: none;
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   outline: none;
 }
 
 .searchInput::placeholder {
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* ── Sticker Grid ─────────────────────────────────── */
@@ -128,7 +128,7 @@
   justify-content: center;
   align-items: center;
   height: 6rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -161,7 +161,7 @@
 
 .stickerItem:hover {
   transform: scale(1.08);
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
   z-index: 2;
 }
 
@@ -194,16 +194,16 @@
 }
 
 .overlayActionBtn {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
   border-radius: 50%;
   width: 1.5rem;
   height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-md);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
@@ -211,39 +211,39 @@
 
 .overlayActionBtn:hover {
   background-color: #318c62;
-  color: #ffffff;
+  color: var(--bg-primary);
   border-color: #318c62;
 }
 
 .overlayActionBtnDelete {
-  background: #ffffff;
-  border: 1px solid #fca5a5;
-  color: #ef4444;
+  background: var(--bg-primary);
+  border: 1px solid var(--danger-light);
+  color: var(--danger-primary);
   border-radius: 50%;
   width: 1.5rem;
   height: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px var(--shadow-md);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
 }
 
 .overlayActionBtnDelete:hover {
-  background-color: #ef4444;
-  color: #ffffff;
+  background-color: var(--danger-primary);
+  color: var(--bg-primary);
 }
 
 /* ── Upload Trigger Button ────────────────────────── */
 .uploadTriggerBtn {
   margin: 0.75rem;
   padding: 0.625rem;
-  background-color: #f9fafb;
-  border: 1px dashed #d1d5db;
+  background-color: var(--bg-secondary);
+  border: 1px dashed var(--border-hover);
   border-radius: 0.5rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,7 +267,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  background-color: #f9fafb;
+  background-color: var(--bg-secondary);
   flex: 1;
   overflow-y: auto;
   scrollbar-color: #57c592 transparent;
@@ -286,7 +286,7 @@
 
 .uploadForm h4 {
   margin: 0;
-  color: #111827;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
@@ -295,11 +295,11 @@
 }
 
 .fileLabel {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   padding: 0 0.75rem;
   border-radius: 0.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.875rem;
   transition:
@@ -314,24 +314,24 @@
 }
 
 .fileLabel:hover {
-  background-color: #f3f4f6;
+  background-color: var(--bg-tertiary);
   border-color: #57c592;
-  color: #374151;
+  color: var(--text-secondary);
 }
 
 .uploadHint {
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin: -0.4rem 0 0;
   text-align: center;
 }
 
 .uploadInput {
-  background-color: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
   padding: 0.6rem 0.75rem;
   border-radius: 0.5rem;
-  color: #374151;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.15s ease;
@@ -350,10 +350,10 @@
 .cancelBtn {
   flex: 1;
   padding: 0.6rem;
-  background-color: #f3f4f6;
-  border: 1px solid #e5e7eb;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 0.5rem;
-  color: #6b7280;
+  color: var(--text-muted);
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
@@ -361,8 +361,8 @@
 }
 
 .cancelBtn:hover {
-  background-color: #e5e7eb;
-  color: #374151;
+  background-color: var(--border-color);
+  color: var(--text-secondary);
 }
 
 .submitBtn {
@@ -370,7 +370,7 @@
   padding: 0.6rem;
   background-color: #318c62;
   border-radius: 0.5rem;
-  color: #ffffff;
+  color: var(--bg-primary);
   font-weight: 600;
   transition: background-color 0.15s ease;
   display: flex;
@@ -389,7 +389,7 @@
 }
 
 .errorText {
-  color: #ef4444;
+  color: var(--danger-primary);
   font-size: 0.75rem;
   text-align: center;
 }
@@ -418,8 +418,8 @@
   top: 3.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #111827;
-  color: #ffffff;
+  background-color: var(--text-primary);
+  color: var(--bg-primary);
   padding: 0.4rem 1rem;
   border-radius: 1.25rem;
   font-size: 0.8rem;
@@ -427,7 +427,7 @@
   pointer-events: none;
   animation: toastFade 2s ease-in-out forwards;
   white-space: nowrap;
-  border: 1px solid #374151;
+  border: 1px solid var(--text-secondary);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
