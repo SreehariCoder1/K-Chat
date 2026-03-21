@@ -19,6 +19,7 @@ import {
   MoreHorizontal,
   Sun,
   Moon,
+  Settings,
 } from "lucide-react";
 import { AuthContext } from "../context/AuthContext";
 import { SocketContext } from "../context/SocketContext";
@@ -26,9 +27,10 @@ import { ThemeContext } from "../context/ThemeContext";
 import OnlineFilter from "./OnlineFilter";
 import RandomChat from "./RandomChat";
 import { playNotificationSound } from "../utils/notificationSound";
+import SettingsMenu from "./SettingsMenu";
 
 const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
-  const { user, logout, blockUser, unblockUser } = useContext(AuthContext);
+  const { user, blockUser, unblockUser } = useContext(AuthContext);
   const { onlineUsers = [], socket } = useContext(SocketContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const [typingUsers, setTypingUsers] = useState(new Set());
@@ -51,6 +53,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -690,10 +693,16 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
           {user?.username ? user.username.charAt(0).toUpperCase() : "U"}
         </div>
         <div className={styles.userName}>{user?.username || "Guest"}</div>
-        <div className={styles.logoutBtn} onClick={logout} title="Logout">
-          <Power className={styles.logoutIcon} size={20} />
+        <div
+          className={styles.logoutBtn}
+          onClick={() => setShowSettings(true)}
+          title="Settings"
+        >
+          <Settings className={styles.logoutIcon} size={20} />
         </div>
       </div>
+
+      {showSettings && <SettingsMenu onClose={() => setShowSettings(false)} />}
     </div>
   );
 };

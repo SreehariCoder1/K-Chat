@@ -174,6 +174,10 @@ class UserRepository {
     const sortedUsers = await User.aggregate(pipeline);
     return sortedUsers;
   }
+
+  async deleteUser(userId) {
+    return await User.findByIdAndDelete(userId);
+  }
 }
 
 export default new UserRepository();

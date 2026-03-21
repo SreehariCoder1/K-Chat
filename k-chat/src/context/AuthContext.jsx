@@ -68,6 +68,20 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteAccount = async () => {
+    try {
+      const response = await axios.delete("/users/me");
+      setUser(null);
+      return { success: true, message: response.data.message };
+    } catch (err) {
+      console.error("Delete account error:", err);
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to delete account",
+      };
+    }
+  };
+
   const forgotPassword = async (email) => {
     setError(null);
     try {
@@ -182,6 +196,7 @@ export const AuthProvider = ({ children }) => {
     unblockUser,
     addFavorite,
     removeFavorite,
+    deleteAccount,
   };
 
   return (

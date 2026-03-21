@@ -7,6 +7,7 @@ import {
   addFavorite,
   removeFavorite,
   getFavorites,
+  deleteAccount,
 } from "../controllers/userController.js";
 import { protectRoute } from "../utils/protectRoute.js";
 
@@ -19,5 +20,6 @@ router.get("/search", protectRoute, searchUsers);
 router.post("/favorite/:id", protectRoute, addFavorite);
 router.post("/unfavorite/:id", protectRoute, removeFavorite);
 router.get("/favorites", protectRoute, getFavorites);
+router.delete("/me", protectRoute, deleteAccount);
 
 export default router;

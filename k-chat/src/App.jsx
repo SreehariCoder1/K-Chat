@@ -7,6 +7,7 @@ import {
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { SocketProvider } from "./context/SocketContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { SettingsProvider } from "./context/SettingsContext";
 import { useEffect, useContext } from "react";
 import ChatLayout from "./components/ChatLayout";
 import Login from "./components/Login";
@@ -43,59 +44,61 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <SocketProvider>
-          <Router>
-            <Routes>
-              <Route
-                path="/login"
-                element={
-                  <AuthRoute>
-                    <Login />
-                  </AuthRoute>
-                }
-              />
+      <SettingsProvider>
+        <AuthProvider>
+          <SocketProvider>
+            <Router>
+              <Routes>
+                <Route
+                  path="/login"
+                  element={
+                    <AuthRoute>
+                      <Login />
+                    </AuthRoute>
+                  }
+                />
 
-              <Route
-                path="/register"
-                element={
-                  <AuthRoute>
-                    <Register />
-                  </AuthRoute>
-                }
-              />
+                <Route
+                  path="/register"
+                  element={
+                    <AuthRoute>
+                      <Register />
+                    </AuthRoute>
+                  }
+                />
 
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <ChatLayout />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <ChatLayout />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/verify-email/:token" element={<VerifyEmail />} />
+                <Route path="/verify-email/:token" element={<VerifyEmail />} />
 
-              <Route
-                path="/forgot-password"
-                element={
-                  <AuthRoute>
-                    <ForgotPassword />
-                  </AuthRoute>
-                }
-              />
-              <Route
-                path="/reset-password/:token"
-                element={
-                  <AuthRoute>
-                    <ResetPassword />
-                  </AuthRoute>
-                }
-              />
-            </Routes>
-          </Router>
-        </SocketProvider>
-      </AuthProvider>
+                <Route
+                  path="/forgot-password"
+                  element={
+                    <AuthRoute>
+                      <ForgotPassword />
+                    </AuthRoute>
+                  }
+                />
+                <Route
+                  path="/reset-password/:token"
+                  element={
+                    <AuthRoute>
+                      <ResetPassword />
+                    </AuthRoute>
+                  }
+                />
+              </Routes>
+            </Router>
+          </SocketProvider>
+        </AuthProvider>
+      </SettingsProvider>
     </ThemeProvider>
   );
 };

@@ -11,14 +11,35 @@ const EffectAnimation = ({ onDone, role, effect }) => {
 
     const soundVar = `VITE_${effect}_SOUND_URL`;
     const soundUrl = import.meta.env[soundVar];
-    if (soundUrl) {
+
+    let shouldPlaySound = true;
+    try {
+      const soundEnabled = JSON.parse(
+        localStorage.getItem("kchat_soundEnabled") ?? "true",
+      );
+      if (!soundEnabled) {
+        shouldPlaySound = false;
+      } else if (role === "sender") {
+        shouldPlaySound = JSON.parse(
+          localStorage.getItem("kchat_senderEffectSound") ?? "true",
+        );
+      } else if (role === "receiver") {
+        shouldPlaySound = JSON.parse(
+          localStorage.getItem("kchat_receiverEffectSound") ?? "true",
+        );
+      }
+    } catch {
+      // default true
+    }
+
+    if (soundUrl && shouldPlaySound) {
       const audio = new Audio(soundUrl);
       audio.volume = 1;
       audio.play().catch(() => {});
     }
     const timer = setTimeout(onDone, 10000);
     return () => clearTimeout(timer);
-  }, [effect, onDone]);
+  }, [effect, onDone, role]);
 
   const handleLottieEvent = (event) => {
     if (event === "complete") {

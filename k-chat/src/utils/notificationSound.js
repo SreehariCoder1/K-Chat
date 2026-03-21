@@ -42,6 +42,18 @@ export const initAudioUnlocker = () => {
 export const playNotificationSound = () => {
   if (!notificationAudio) return;
 
+  try {
+    const soundEnabled = JSON.parse(
+      localStorage.getItem("kchat_soundEnabled") ?? "true",
+    );
+    const incomingSound = JSON.parse(
+      localStorage.getItem("kchat_incomingMessageSound") ?? "true",
+    );
+    if (!soundEnabled || !incomingSound) return;
+  } catch {
+    // defaults to true
+  }
+
   // Reset time if it was already playing
   notificationAudio.currentTime = 0;
 

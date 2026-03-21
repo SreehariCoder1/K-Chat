@@ -173,3 +173,18 @@ export const getFavorites = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    await userRepository.deleteUser(userId);
+    res.cookie("token", "", {
+      httpOnly: true,
+      expires: new Date(0),
+    });
+    res.status(200).json({ message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteAccount:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
