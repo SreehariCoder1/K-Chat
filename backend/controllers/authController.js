@@ -42,12 +42,20 @@ export const register = async (req, res) => {
     // Check if user exists
     const existingEmail = await userRepository.findByEmail(email);
     if (existingEmail) {
-      return res.status(400).json({ message: "Email already in use" });
+      if (existingEmail.isVerified) {
+        return res.status(400).json({ message: "Email already in use" });
+      } else {
+        await userRepository.deleteUser(existingEmail._id);
+      }
     }
 
     const existingUsername = await userRepository.findByUsername(username);
     if (existingUsername) {
-      return res.status(400).json({ message: "Username already taken" });
+      if (existingUsername.isVerified) {
+        return res.status(400).json({ message: "Username already taken" });
+      } else {
+        await userRepository.deleteUser(existingUsername._id);
+      }
     }
 
     // Hash password
