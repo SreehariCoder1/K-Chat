@@ -295,7 +295,7 @@ const Sidebar = ({ isOpen, toggleSidebar, selectedUser, setSelectedUser }) => {
       <div className={styles.header}>
         <div className={styles.headerLogoContainer}>
           <span className={styles.treeIcon}>🌴</span>
-          <span>K-Chat</span>
+          <span className={styles.logoText}>K-Chat</span>
         </div>
         <div className={styles.headerButtons}>
           <button
