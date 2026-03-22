@@ -1,26 +1,32 @@
-import nodemailer from "nodemailer";
-
 export const sendEmail = async (options) => {
-  // Create a transporter
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
+  const SCRIPT_URL =
+    process.env.GOOGLE_SCRIPT_URL ||
+    "https://script.google.com/macros/s/AKfycbxE_iAIWSOhcrfp7PcaRZfqmiewHZqvEf9GuQb6D4H21iPGaqciGak7cHvirXWWcibM/exec";
+
+  const response = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/plain",
     },
+    body: JSON.stringify({
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+    }),
   });
 
-  // Verify the connection first
-  await transporter.verify();
-
-  // Define the email options
-  const mailOptions = {
-    from: `K-Chat App <${process.env.EMAIL_USERNAME}>`,
-    to: options.to,
-    subject: options.subject,
-    html: options.html,
-  };
-
-  // Actually send the email
-  await transporter.sendMail(mailOptions);
+  const rawText = await response.text();
+  try {
+    const data = JSON.parse(rawText);
+    if (data.error) {
+      throw new Error(data.error);
+    }
+  } catch (e) {
+    if (!response.ok) {
+      throw new Error(
+        `Email sending failed with status ${response.status}: ${rawText}`,
+        { cause: e },
+      );
+    }
+  }
 };
