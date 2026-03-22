@@ -127,8 +127,6 @@ setInterval(
 );
 
 io.on("connection", (socket) => {
-  console.log("New user connected:", socket.id);
-
   socket.on("addNewUser", async (userId) => {
     try {
       if (userId) {
@@ -178,7 +176,9 @@ io.on("connection", (socket) => {
         }
       }
     } catch (err) {
-      console.error(err);
+      if (process.env.NODE_ENV === "development") {
+        console.error(err);
+      }
     }
   });
 
@@ -241,7 +241,9 @@ io.on("connection", (socket) => {
           callback(savedMessage);
         }
       } catch (error) {
-        console.error("Socket error on sendMessage:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Socket error on sendMessage:", error);
+        }
         if (typeof callback === "function") {
           callback({ error: "Failed to send message" });
         }
