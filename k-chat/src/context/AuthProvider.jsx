@@ -3,7 +3,8 @@ import axios from "axios";
 import { AuthContext } from "./AuthContext";
 
 // Configure Axios
-axios.defaults.baseURL = `http://${window.location.hostname}:5000/api`;
+axios.defaults.baseURL =
+  import.meta.env.VITE_API_URL || `http://${window.location.hostname}:5000/api`;
 axios.defaults.withCredentials = true;
 
 export const AuthProvider = ({ children }) => {

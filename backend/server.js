@@ -20,7 +20,8 @@ app.use(express.urlencoded({ limit: "10mb", extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: true,
+    origin:
+      process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : true,
     credentials: true,
   }),
 );
@@ -38,7 +39,8 @@ const MONGO_URI = process.env.MONGODB_URI;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: true,
+    origin:
+      process.env.NODE_ENV === "production" ? process.env.FRONTEND_URL : true,
     credentials: true,
   },
 });

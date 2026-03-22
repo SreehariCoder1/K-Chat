@@ -12,7 +12,10 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (user) {
-      const newSocket = io(`http://${window.location.hostname}:5000`, {
+      const socketUrl =
+        import.meta.env.VITE_SOCKET_URL ||
+        `http://${window.location.hostname}:5000`;
+      const newSocket = io(socketUrl, {
         withCredentials: true,
       });
 
