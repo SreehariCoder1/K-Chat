@@ -31,7 +31,7 @@ export const uploadSticker = async (req, res) => {
           .filter((k) => k)
       : [];
 
-    const stickerUrl = req.file.path; // multer-storage-cloudinary places the full URL here
+    const stickerUrl = req.file.path;
 
     const newStickerPayload = {
       url: stickerUrl,

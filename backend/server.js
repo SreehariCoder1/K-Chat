@@ -21,7 +21,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: true,
-    credentials: true, // Allow cookies to be sent along with the request
+    credentials: true,
   }),
 );
 
@@ -222,7 +222,6 @@ io.on("connection", (socket) => {
           isBlocked,
         });
 
-        // Populate replyTo for realtime receiver update
         savedMessage = await savedMessage.populate(
           "replyTo",
           "message senderId type stickerUrl",
@@ -236,7 +235,6 @@ io.on("connection", (socket) => {
           }
         }
 
-        // Return the saved message to the sender so they get the real DB _id
         if (typeof callback === "function") {
           callback(savedMessage);
         }
@@ -330,12 +328,9 @@ io.on("connection", (socket) => {
       if (!message) return;
 
       const user = onlineUsers.get(socket.id);
-      if (!user) return; // User must be online and authenticated in our map
+      if (!user) return;
 
-      // Verify sender
       if (message.senderId.toString() !== user._id.toString()) return;
-
-      // Verify time difference (<= 15 minutes)
       const now = new Date();
       const messageTime = new Date(message.createdAt);
       const diffMs = now - messageTime;
@@ -351,7 +346,6 @@ io.on("connection", (socket) => {
           },
         );
 
-        // Broadcast to receiver if online
         const receiverSockets = userSocketMap.get(
           message.receiverId.toString(),
         );
@@ -361,7 +355,6 @@ io.on("connection", (socket) => {
           }
         }
 
-        // emit back to sender to update their UI definitively
         socket.emit("messageDeleted", updatedMessage);
       }
     } catch (error) {
@@ -387,7 +380,6 @@ io.on("connection", (socket) => {
     const myBlockedList =
       freshUser?.blockedUsers?.map((id) => id.toString()) || [];
 
-    // Build candidates list (all current pool members)
     const candidates = [];
     const recentOnlyCandidates = []; // fallback if only recent matches available
 
@@ -436,10 +428,8 @@ io.on("connection", (socket) => {
       const partnerId = match.candidateId;
       const partnerEntry = match.candidateEntry;
 
-      // Remove partner from waiting pool
       waitingPool.delete(partnerId);
 
-      // Record pair
       randomPairs.set(userId, partnerId);
       randomPairs.set(partnerId, userId);
 

@@ -126,7 +126,6 @@ const MainChat = ({ isOpen, toggleSidebar, selectedUser }) => {
 
   const isChatVisible = !isMobile || !isOpen;
 
-  // Track visibility in a ref so socket handlers can access current state without stale closures
   const isChatVisibleRef = useRef(isChatVisible);
   useEffect(() => {
     isChatVisibleRef.current = isChatVisible;

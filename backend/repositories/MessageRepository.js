@@ -25,7 +25,7 @@ class MessageRepository {
       ],
     })
       .populate("replyTo", "message senderId type stickerUrl")
-      .sort({ createdAt: 1 }); // Chronological order
+      .sort({ createdAt: 1 });
   }
 
   async getChattedUsers(userId) {
