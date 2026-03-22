@@ -11,11 +11,7 @@ export const sendEmail = async (options) => {
   });
 
   // Verify the connection first
-  try {
-    await transporter.verify();
-  } catch (verifyError) {
-    throw verifyError;
-  }
+  await transporter.verify();
 
   // Define the email options
   const mailOptions = {
@@ -26,5 +22,5 @@ export const sendEmail = async (options) => {
   };
 
   // Actually send the email
-  const info = await transporter.sendMail(mailOptions);
+  await transporter.sendMail(mailOptions);
 };

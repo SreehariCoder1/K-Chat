@@ -26,7 +26,42 @@ const RandomChat = ({
   const [randomPartner, setRandomPartner] = useState(null);
   const [waitingCountdown, setWaitingCountdown] = useState(60);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+  const [prevRandomStatus, setPrevRandomStatus] = useState(randomStatus);
+  const [prevActiveTabRender, setPrevActiveTabRender] = useState(activeTab);
   const countdownRef = useRef(null);
+  const prevActiveTabEffect = useRef(activeTab);
+  const prevStatusEffect = useRef(randomStatus);
+
+  if (randomStatus !== prevRandomStatus) {
+    setPrevRandomStatus(randomStatus);
+    if (randomStatus === "waiting") {
+      setWaitingCountdown(60);
+    }
+  }
+
+  if (activeTab !== prevActiveTabRender) {
+    setPrevActiveTabRender(activeTab);
+    if (activeTab !== "random" && randomStatus === "waiting") {
+      setRandomStatus("idle");
+      setRandomPartner(null);
+    }
+  }
+
+  useEffect(() => {
+    const prevTab = prevActiveTabEffect.current;
+    const prevStatus = prevStatusEffect.current;
+
+    if (
+      prevTab === "random" &&
+      activeTab !== "random" &&
+      prevStatus === "waiting"
+    ) {
+      if (socket) socket.emit("leaveRandomPool");
+    }
+
+    prevActiveTabEffect.current = activeTab;
+    prevStatusEffect.current = randomStatus;
+  }, [activeTab, randomStatus, socket]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -38,7 +73,6 @@ const RandomChat = ({
   // Countdown timer for waiting state (1 minute)
   useEffect(() => {
     if (randomStatus === "waiting") {
-      setWaitingCountdown(60);
       countdownRef.current = setInterval(() => {
         setWaitingCountdown((prev) => {
           if (prev <= 1) {
@@ -62,8 +96,7 @@ const RandomChat = ({
         countdownRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [randomStatus]);
+  }, [randomStatus, socket]);
 
   // Socket listeners for random chat
   useEffect(() => {
@@ -103,18 +136,6 @@ const RandomChat = ({
       socket.off("randomPartnerLeft", handleRandomPartnerLeft);
     };
   }, [socket, setSelectedUser, setActiveTab]);
-
-  // When navigating away from the random tab, leave the pool if waiting
-  useEffect(() => {
-    if (activeTab !== "random") {
-      if (socket && randomStatus === "waiting") {
-        socket.emit("leaveRandomPool");
-        setRandomStatus("idle");
-        setRandomPartner(null);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
 
   if (activeTab !== "random") return null;
 

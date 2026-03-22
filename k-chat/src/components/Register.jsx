@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import zxcvbn from "zxcvbn";
 import ReCAPTCHA from "react-google-recaptcha";
@@ -23,7 +23,6 @@ const Register = () => {
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(null);
   const [captchaToken, setCaptchaToken] = useState(null);
   const { register, error, setError } = useContext(AuthContext);
 
@@ -31,12 +30,8 @@ const Register = () => {
     if (setError) setError(null);
   }, [setError]);
 
-  useEffect(() => {
-    if (formData.password) {
-      setPasswordStrength(zxcvbn(formData.password));
-    } else {
-      setPasswordStrength(null);
-    }
+  const passwordStrength = useMemo(() => {
+    return formData.password ? zxcvbn(formData.password) : null;
   }, [formData.password]);
 
   const togglePasswordVisibility = () => {

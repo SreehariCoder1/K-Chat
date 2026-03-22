@@ -11,7 +11,7 @@ export const getMessages = async (req, res) => {
     );
 
     res.status(200).json(messages);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -21,7 +21,7 @@ export const getChatHistory = async (req, res) => {
     const userId = req.user.id;
     const history = await MessageRepository.getChattedUsers(userId);
     res.status(200).json(history);
-  } catch (error) {
+  } catch {
     res.status(500).json({ error: "Internal server error" });
   }
 };

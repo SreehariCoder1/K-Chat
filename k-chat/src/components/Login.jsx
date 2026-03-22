@@ -114,7 +114,7 @@ const Login = () => {
         </Link>
 
         <p className={styles.registerText}>
-          Don't have an account?
+          Don&apos;t have an account?
           <Link to="/register" className={styles.registerLink}>
             Register Now
           </Link>

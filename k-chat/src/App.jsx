@@ -4,7 +4,8 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import { AuthProvider, AuthContext } from "./context/AuthContext";
+import { AuthContext } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthProvider";
 import { SocketProvider } from "./context/SocketContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { SettingsProvider } from "./context/SettingsContext";

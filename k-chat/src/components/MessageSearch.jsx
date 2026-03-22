@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, ChevronUp, ChevronDown, X } from "lucide-react";
 import styles from "../styles/MessageSearch.module.css";
 
@@ -9,14 +9,13 @@ const MessageSearch = ({
   onScrollTo,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
   const [currentSearchIndex, setCurrentSearchIndex] = useState(-1);
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+  const [prevMessages, setPrevMessages] = useState(messages);
 
-  useEffect(() => {
+  const searchResults = useMemo(() => {
     if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setCurrentSearchIndex(-1);
-      return;
+      return [];
     }
 
     const query = searchQuery.toLowerCase();
@@ -31,14 +30,24 @@ const MessageSearch = ({
       }
     });
 
-    setSearchResults(results);
-    if (results.length > 0) {
-      setCurrentSearchIndex(0);
-      onScrollTo(results[0].id);
-    } else {
-      setCurrentSearchIndex(-1);
-    }
+    return results;
   }, [searchQuery, messages]);
+
+  if (searchQuery !== prevSearchQuery || messages !== prevMessages) {
+    setPrevSearchQuery(searchQuery);
+    setPrevMessages(messages);
+    if (!searchQuery.trim() || searchResults.length === 0) {
+      setCurrentSearchIndex(-1);
+    } else {
+      setCurrentSearchIndex(0);
+    }
+  }
+
+  useEffect(() => {
+    if (searchQuery.trim() && searchResults.length > 0) {
+      onScrollTo(searchResults[0].id);
+    }
+  }, [searchQuery, messages, searchResults, onScrollTo]);
 
   const handleSearchChange = (e) => {
     onQueryChange(e.target.value);
@@ -68,7 +77,6 @@ const MessageSearch = ({
   const closeSearch = () => {
     setIsSearchOpen(false);
     onQueryChange("");
-    setSearchResults([]);
     setCurrentSearchIndex(-1);
   };
 

@@ -209,7 +209,7 @@ export const checkAuth = async (req, res) => {
         favorites: user.favorites || [],
       },
     });
-  } catch (error) {
+  } catch {
     res.status(401).json({ message: "Not authenticated" });
   }
 };
@@ -232,7 +232,7 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: "Email verified successfully" });
-  } catch (error) {
+  } catch {
     res.status(500).json({ message: "Server error during email verification" });
   }
 };

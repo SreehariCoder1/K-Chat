@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import zxcvbn from "zxcvbn";
 import { AuthContext } from "../context/AuthContext";
@@ -18,19 +18,14 @@ const ResetPassword = () => {
   });
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(null);
   const { resetPassword, error, setError } = useContext(AuthContext);
 
   useEffect(() => {
     if (setError) setError(null);
   }, [setError]);
 
-  useEffect(() => {
-    if (formData.password) {
-      setPasswordStrength(zxcvbn(formData.password));
-    } else {
-      setPasswordStrength(null);
-    }
+  const passwordStrength = useMemo(() => {
+    return formData.password ? zxcvbn(formData.password) : null;
   }, [formData.password]);
 
   const togglePasswordVisibility = () => setShowPassword(!showPassword);
